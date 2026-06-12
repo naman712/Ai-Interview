@@ -1,0 +1,750 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Neoflo — AI Interview</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg:        #000000;
+    --surface:   #0f0f0f;
+    --surface-2: #1a1a1a;
+    --surface-3: #242424;
+    --hover:     #2a2a2a;
+    --white:     #ffffff;
+    --muted:     #777777;
+    --muted-2:   #555555;
+    --border:    rgba(255,255,255,0.09);
+    --border-2:  rgba(255,255,255,0.16);
+    --accent:    #ffffff;
+    --danger:    #ef4444;
+    --success:   #22c55e;
+    --warn:      #f59e0b;
+    --radius:    12px;
+  }
+
+  html, body {
+    height: 100%;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: var(--bg);
+    color: var(--white);
+    overflow-x: hidden;
+  }
+
+  .screen { display: none; min-height: 100vh; width: 100%; }
+  .screen.active { display: flex; }
+
+  /* ── Login ──────────────────────────────────────────── */
+  #screen-login {
+    align-items: center; justify-content: center; padding: 24px;
+    background: var(--bg);
+  }
+  .login-card {
+    background: var(--surface);
+    border: 1px solid var(--border-2);
+    border-radius: var(--radius);
+    padding: 48px 40px;
+    width: 100%; max-width: 440px;
+    box-shadow: 0 32px 80px rgba(0,0,0,0.8);
+  }
+  .brand { display: flex; align-items: center; gap: 13px; margin-bottom: 36px; }
+  .brand-logo {
+    width: 40px; height: 40px;
+    background: var(--white); border-radius: 9px;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  .brand-logo svg { width: 22px; height: 22px; }
+  .brand-name { font-size: 19px; font-weight: 800; letter-spacing: -0.4px; color: var(--white); }
+  .brand-sub  { font-size: 11px; color: var(--muted); letter-spacing: 0.5px; text-transform: uppercase; }
+  .login-title { font-size: 24px; font-weight: 700; margin-bottom: 6px; letter-spacing: -0.3px; }
+  .login-sub   { font-size: 14px; color: var(--muted); margin-bottom: 32px; }
+  .field       { margin-bottom: 16px; }
+  .field label { display: block; font-size: 12px; font-weight: 600; color: var(--muted); margin-bottom: 7px; text-transform: uppercase; letter-spacing: 0.6px; }
+  .field input {
+    width: 100%; padding: 13px 16px;
+    background: var(--surface-2); border: 1px solid var(--border-2);
+    border-radius: 9px; color: var(--white); font-size: 15px;
+    outline: none; transition: border-color 0.2s, box-shadow 0.2s;
+  }
+  .field input:focus { border-color: rgba(255,255,255,0.5); box-shadow: 0 0 0 3px rgba(255,255,255,0.07); }
+  .field input::placeholder { color: var(--muted-2); }
+  .btn {
+    display: inline-flex; align-items: center; justify-content: center;
+    gap: 8px; padding: 13px 24px; border-radius: 9px;
+    font-size: 15px; font-weight: 600; cursor: pointer; border: none;
+    transition: all 0.2s; width: 100%;
+  }
+  .btn-primary { background: var(--white); color: #000; }
+  .btn-primary:hover:not(:disabled) { background: #e8e8e8; transform: translateY(-1px); box-shadow: 0 8px 24px rgba(255,255,255,0.15); }
+  .btn:disabled { opacity: 0.4; cursor: not-allowed; }
+  .error-msg {
+    background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.25);
+    color: #fca5a5; border-radius: 8px; padding: 12px 16px;
+    font-size: 13px; margin-top: 16px; display: none;
+  }
+  .error-msg.show { display: block; }
+
+  /* ── Already done ───────────────────────────────────── */
+  #screen-done {
+    align-items: center; justify-content: center; padding: 24px;
+    text-align: center; flex-direction: column; background: var(--bg);
+  }
+  .done-icon  { font-size: 56px; margin-bottom: 20px; }
+  .done-title { font-size: 26px; font-weight: 700; margin-bottom: 10px; }
+  .done-sub   { font-size: 15px; color: var(--muted); max-width: 400px; line-height: 1.7; }
+
+  /* ── Interview ──────────────────────────────────────── */
+  #screen-interview { flex-direction: column; background: var(--bg); }
+
+  .interview-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 16px 32px; border-bottom: 1px solid var(--border);
+    background: var(--surface); flex-shrink: 0; flex-wrap: wrap; gap: 12px;
+  }
+  .header-brand { display: flex; align-items: center; gap: 10px; }
+  .header-brand .brand-logo { width: 30px; height: 30px; border-radius: 7px; }
+  .header-brand .brand-logo svg { width: 16px; height: 16px; }
+  .header-brand-name { font-size: 14px; font-weight: 700; color: var(--white); }
+  .header-sep { color: var(--muted-2); margin: 0 6px; }
+  .header-candidate { font-size: 13px; color: var(--muted); }
+
+  .timer-wrap {
+    display: flex; align-items: center; gap: 7px;
+    background: var(--surface-2); border: 1px solid var(--border);
+    border-radius: 50px; padding: 6px 14px;
+  }
+  .timer-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--muted); }
+  .timer-val { font-size: 18px; font-weight: 700; font-variant-numeric: tabular-nums; letter-spacing: 1px; }
+  .timer-val.warn { color: var(--warn); }
+  .timer-val.crit { color: var(--danger); animation: pulse-text 1s infinite; }
+  @keyframes pulse-text { 0%,100%{opacity:1} 50%{opacity:0.4} }
+
+  .progress-wrap { display: flex; align-items: center; gap: 8px; }
+  .progress-label { font-size: 12px; color: var(--muted); font-weight: 500; }
+  .progress-dots  { display: flex; gap: 5px; }
+  .dot {
+    width: 7px; height: 7px; border-radius: 50%;
+    background: var(--surface-3); border: 1px solid var(--border-2);
+    transition: all 0.3s;
+  }
+  .dot.done    { background: var(--white); border-color: var(--white); }
+  .dot.current { background: var(--white); border-color: var(--white); transform: scale(1.4); }
+
+  .interview-body {
+    flex: 1; display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    padding: 40px 24px; max-width: 740px; width: 100%; margin: 0 auto;
+  }
+
+  .q-label {
+    display: flex; align-items: center; gap: 10px; margin-bottom: 20px;
+  }
+  .q-counter {
+    font-size: 11px; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 2px; color: var(--muted);
+  }
+  .followup-badge {
+    display: none; align-items: center; gap: 5px;
+    background: rgba(245,158,11,0.12); border: 1px solid rgba(245,158,11,0.3);
+    color: var(--warn); border-radius: 50px; padding: 3px 12px;
+    font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px;
+  }
+  .followup-badge.show { display: inline-flex; }
+
+  .question-box {
+    background: var(--surface); border: 1px solid var(--border-2);
+    border-radius: var(--radius); padding: 32px 36px;
+    font-size: 20px; font-weight: 600; line-height: 1.6;
+    text-align: center; width: 100%; margin-bottom: 36px;
+    box-shadow: 0 4px 40px rgba(0,0,0,0.6);
+  }
+
+  .mic-section { display: flex; flex-direction: column; align-items: center; gap: 16px; width: 100%; }
+
+  /* REC */
+  .rec-indicator {
+    display: flex; align-items: center; gap: 8px;
+    font-size: 12px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase;
+    color: var(--danger); opacity: 0; transition: opacity 0.3s;
+  }
+  .rec-indicator.active { opacity: 1; }
+  .rec-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--danger); animation: rec-pulse 1.2s ease-in-out infinite; }
+  @keyframes rec-pulse { 0%,100%{transform:scale(1);opacity:1} 50%{transform:scale(1.7);opacity:0.4} }
+
+  /* Waveform */
+  .waveform { display: none; align-items: flex-end; justify-content: center; gap: 4px; height: 44px; }
+  .waveform.show { display: flex; }
+  .wb { width: 4px; background: var(--white); border-radius: 2px; height: 4px; transition: height 0.08s ease-out; opacity: 0.7; }
+
+  /* Transcript */
+  .transcript-box {
+    width: 100%; min-height: 80px; max-height: 180px; overflow-y: auto;
+    background: var(--surface-2); border: 1px solid var(--border-2);
+    border-radius: 10px; padding: 16px 20px;
+    font-size: 15px; line-height: 1.7; color: var(--white); display: none;
+  }
+  .transcript-box.show { display: block; }
+
+  /* Countdown */
+  .start-countdown { font-size: 13px; color: var(--muted); display: none; text-align: center; }
+
+  /* Auto-advance bar */
+  .auto-advance-wrap { display: none; width: 100%; flex-direction: column; align-items: center; gap: 7px; }
+  .auto-advance-wrap.show { display: flex; }
+  .auto-advance-label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; font-weight: 600; }
+  .advance-track { width: 100%; height: 2px; background: var(--surface-3); border-radius: 2px; overflow: hidden; }
+  .advance-fill  { height: 100%; width: 0%; background: var(--white); border-radius: 2px; transition: width 0.2s linear; }
+
+  /* Status spinners */
+  .status-msg { display: none; align-items: center; gap: 8px; font-size: 13px; color: var(--muted); }
+  .status-msg.show { display: inline-flex; }
+  .mini-spin { width: 13px; height: 13px; border: 2px solid var(--surface-3); border-top-color: var(--white); border-radius: 50%; animation: spin 0.7s linear infinite; }
+
+  /* Mic error */
+  .mic-error { background: rgba(239,68,68,0.08); border: 1px solid rgba(239,68,68,0.2); color: #fca5a5; border-radius: 8px; padding: 12px 18px; font-size: 13px; text-align: center; display: none; width: 100%; }
+  .mic-error.show { display: block; }
+
+  /* ── Submitting ─────────────────────────────────────── */
+  #screen-submitting {
+    flex-direction: column; align-items: center; justify-content: center;
+    padding: 24px; text-align: center; background: var(--bg);
+  }
+  .spinner { width: 48px; height: 48px; border: 2px solid var(--surface-3); border-top-color: var(--white); border-radius: 50%; animation: spin 0.8s linear infinite; margin-bottom: 28px; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .submitting-title { font-size: 22px; font-weight: 700; margin-bottom: 10px; }
+  .submitting-sub   { font-size: 14px; color: var(--muted); }
+
+  /* ── Result ─────────────────────────────────────────── */
+  #screen-result {
+    flex-direction: column; align-items: center; justify-content: center;
+    padding: 40px 24px; text-align: center; background: var(--bg);
+  }
+  .result-card {
+    background: var(--surface); border: 1px solid var(--border-2);
+    border-radius: var(--radius); padding: 48px 40px;
+    max-width: 480px; width: 100%; box-shadow: 0 24px 80px rgba(0,0,0,0.8);
+  }
+  .result-check    { font-size: 48px; margin-bottom: 20px; }
+  .result-title    { font-size: 24px; font-weight: 700; margin-bottom: 8px; letter-spacing: -0.3px; }
+  .result-name     { font-size: 15px; color: var(--muted); margin-bottom: 24px; }
+  .result-divider  { border: none; border-top: 1px solid var(--border); margin-bottom: 20px; }
+  .result-thankyou { font-size: 14px; color: var(--muted); line-height: 1.8; }
+  .result-brand    { margin-top: 28px; display: flex; align-items: center; justify-content: center; gap: 8px; opacity: 0.4; }
+  .result-brand-logo { width: 20px; height: 20px; background: var(--white); border-radius: 4px; display: flex; align-items: center; justify-content: center; }
+  .result-brand-logo svg { width: 11px; height: 11px; }
+  .result-brand-name { font-size: 12px; font-weight: 700; color: var(--white); }
+
+  /* ── Responsive ─────────────────────────────────────── */
+  @media (max-width: 600px) {
+    .interview-header { padding: 12px 16px; }
+    .interview-body   { padding: 24px 16px; }
+    .question-box     { font-size: 16px; padding: 22px 18px; }
+    .login-card       { padding: 32px 22px; }
+    .timer-val        { font-size: 16px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ═══════════════ LOGIN ═════════════════════════════ -->
+<div id="screen-login" class="screen active">
+  <div class="login-card">
+    <div class="brand">
+      <div class="brand-logo">
+        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M4 4h4l8 12h4V4h-4l-8 12H4V4z" fill="#000"/>
+        </svg>
+      </div>
+      <div>
+        <div class="brand-name">Neoflo</div>
+        <div class="brand-sub">AI Interview Platform</div>
+      </div>
+    </div>
+    <div class="login-title">Welcome</div>
+    <div class="login-sub">Sign in with your credentials to begin your interview.</div>
+    <div class="field">
+      <label for="inp-email">Email Address</label>
+      <input type="email" id="inp-email" placeholder="you@example.com" autocomplete="email">
+    </div>
+    <div class="field">
+      <label for="inp-password">Password</label>
+      <input type="password" id="inp-password" placeholder="••••••••" autocomplete="current-password">
+    </div>
+    <button class="btn btn-primary" id="btn-login" onclick="handleLogin()">
+      <span id="btn-login-text">Sign In &amp; Begin</span>
+    </button>
+    <div class="error-msg" id="login-error"></div>
+  </div>
+</div>
+
+<!-- ═══════════════ ALREADY DONE ══════════════════════ -->
+<div id="screen-done" class="screen">
+  <div class="done-icon">✅</div>
+  <div class="done-title">Interview Complete</div>
+  <div class="done-sub">You have already completed this interview. Thank you — our team will be in touch soon.</div>
+</div>
+
+<!-- ═══════════════ INTERVIEW ═════════════════════════ -->
+<div id="screen-interview" class="screen">
+  <div class="interview-header">
+    <div class="header-brand">
+      <div class="brand-logo">
+        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M4 4h4l8 12h4V4h-4l-8 12H4V4z" fill="#000"/>
+        </svg>
+      </div>
+      <span class="header-brand-name">Neoflo</span>
+      <span class="header-sep">·</span>
+      <span class="header-candidate" id="hdr-name"></span>
+    </div>
+    <div class="timer-wrap">
+      <div class="timer-dot"></div>
+      <span class="timer-val" id="timer-display">30:00</span>
+    </div>
+    <div class="progress-wrap">
+      <span class="progress-label" id="progress-label">Q1 of 8</span>
+      <div class="progress-dots" id="progress-dots"></div>
+    </div>
+  </div>
+
+  <div class="interview-body">
+    <div class="q-label">
+      <div class="q-counter" id="q-counter">Question 1</div>
+      <span class="followup-badge" id="followup-badge">⚡ Follow-up</span>
+    </div>
+    <div class="question-box" id="question-text"></div>
+
+    <div class="mic-section">
+      <div class="rec-indicator" id="rec-indicator">
+        <div class="rec-dot"></div> Recording
+      </div>
+      <div class="waveform" id="waveform">
+        <div class="wb"></div><div class="wb"></div><div class="wb"></div>
+        <div class="wb"></div><div class="wb"></div><div class="wb"></div>
+        <div class="wb"></div>
+      </div>
+      <div class="transcript-box" id="transcript-box"></div>
+      <div class="mic-error" id="mic-error"></div>
+      <div class="start-countdown" id="start-countdown"></div>
+      <div class="auto-advance-wrap" id="auto-advance-wrap">
+        <div class="auto-advance-label">Moving to next question</div>
+        <div class="advance-track"><div class="advance-fill" id="advance-fill"></div></div>
+      </div>
+      <div class="status-msg" id="transcribing-msg">
+        <div class="mini-spin"></div> Transcribing your answer…
+      </div>
+      <div class="status-msg" id="analysing-msg">
+        <div class="mini-spin"></div> Analysing your answer…
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ SUBMITTING ════════════════════════ -->
+<div id="screen-submitting" class="screen">
+  <div class="spinner"></div>
+  <div class="submitting-title">Submitting your interview…</div>
+  <div class="submitting-sub">Please keep this tab open.</div>
+</div>
+
+<!-- ═══════════════ RESULT ════════════════════════════ -->
+<div id="screen-result" class="screen">
+  <div class="result-card">
+    <div class="result-check">🎉</div>
+    <div class="result-title">Interview Complete</div>
+    <div class="result-name" id="result-name"></div>
+    <hr class="result-divider">
+    <div class="result-thankyou">Thank you for your time. Our team will review your responses and get back to you soon.</div>
+    <div class="result-brand">
+      <div class="result-brand-logo">
+        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M4 4h4l8 12h4V4h-4l-8 12H4V4z" fill="#fff"/>
+        </svg>
+      </div>
+      <span class="result-brand-name">Neoflo</span>
+    </div>
+  </div>
+</div>
+
+<script>
+let QUESTIONS = [];
+
+const S = {
+  candidate: null, currentQ: 0, answers: [], flags: [],
+  timerInt: null, secs: 30 * 60,
+  mediaRecorder: null, audioChunks: [], stream: null,
+  audioCtx: null, analyser: null,
+  recording: false, hasSpeech: false, lastSpeech: 0,
+  silenceInt: null, countdownTimer: null, autoAdvancing: false,
+  isFollowUp: false, checkingFollowUp: false,
+  browserSR: null, browserTranscript: "",
+};
+
+const SOUND_THRESHOLD  = 12;
+const SILENCE_START_MS = 3000;
+const SILENCE_TOTAL_MS = 5000;
+
+function show(id) {
+  document.querySelectorAll(".screen").forEach(s => s.classList.remove("active"));
+  document.getElementById("screen-" + id).classList.add("active");
+}
+function esc(s) {
+  return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+}
+
+async function apiCandidate(body) {
+  const r = await fetch("/api/candidate", { method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify(body) });
+  if (!r.ok) throw new Error("Server error " + r.status);
+  return r.json();
+}
+async function apiScore(transcript) {
+  const r = await fetch("/api/score", { method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify({ transcript }) });
+  if (!r.ok) throw new Error("Score API error " + r.status);
+  return r.json();
+}
+
+async function handleLogin() {
+  const email = document.getElementById("inp-email").value.trim();
+  const pass  = document.getElementById("inp-password").value;
+  const errEl = document.getElementById("login-error");
+  const btn   = document.getElementById("btn-login");
+  const txt   = document.getElementById("btn-login-text");
+
+  errEl.classList.remove("show");
+  if (!email || !pass) { setErr(errEl, "Please enter your email and password."); return; }
+  btn.disabled = true; txt.textContent = "Signing in…";
+
+  try {
+    const data = await apiCandidate({ action: "getCandidate", email });
+    if (!data.success) { setErr(errEl, "Candidate not found. Please check your email address."); return; }
+    const c = data.candidate;
+    if (String(c.Password) !== String(pass)) { setErr(errEl, "Incorrect password. Please try again."); return; }
+    if (String(c.Status || "").trim().toLowerCase() === "interviewed") { show("done"); return; }
+
+    const now = new Date();
+    const winStart = c.InterviewStart ? new Date(c.InterviewStart) : null;
+    const winEnd   = c.InterviewEnd   ? new Date(c.InterviewEnd)   : null;
+    if (winStart && now < winStart) {
+      const d = winStart.toLocaleDateString([], { day:"numeric", month:"short" });
+      const t = winStart.toLocaleTimeString([], { hour:"2-digit", minute:"2-digit" });
+      setErr(errEl, `Your interview window hasn't opened yet. Please come back on ${d} at ${t}.`); return;
+    }
+    if (winEnd && now > winEnd) { setErr(errEl, "Your interview window has closed. Please contact the organiser."); return; }
+
+    S.candidate = c;
+    txt.textContent = "Loading interview…";
+    try {
+      const qRes = await fetch("/api/questions");
+      const qData = await qRes.json();
+      if (qData.questions && qData.questions.length) QUESTIONS = qData.questions;
+    } catch (_) {}
+    startInterview();
+  } catch (e) {
+    console.error(e);
+    setErr(errEl, "Connection error — please check your network and try again.");
+  } finally {
+    btn.disabled = false; txt.textContent = "Sign In & Begin";
+  }
+}
+function setErr(el, msg) { el.textContent = msg; el.classList.add("show"); }
+document.getElementById("inp-password").addEventListener("keydown", e => { if (e.key === "Enter") handleLogin(); });
+
+function startInterview() {
+  document.getElementById("hdr-name").textContent = S.candidate.Name;
+  buildDots(); loadQ(0); startTimer();
+  document.addEventListener("visibilitychange", onVisibilityChange);
+  show("interview");
+}
+function buildDots() {
+  const c = document.getElementById("progress-dots");
+  c.innerHTML = "";
+  QUESTIONS.forEach((_, i) => {
+    const d = document.createElement("div");
+    d.className = "dot" + (i === 0 ? " current" : "");
+    d.id = "dot-" + i;
+    c.appendChild(d);
+  });
+}
+
+function loadQ(idx, isFollowUp = false, followUpText = "") {
+  stopSpeaking();
+  clearTimeout(S.countdownTimer);
+  S.currentQ = idx; S.audioChunks = []; S.hasSpeech = false;
+  S.isFollowUp = isFollowUp; S.autoAdvancing = false;
+
+  const questionText = isFollowUp ? followUpText : QUESTIONS[idx];
+  document.getElementById("q-counter").textContent      = isFollowUp ? "Follow-up · Q" + (idx+1) : "Question " + (idx+1);
+  document.getElementById("question-text").textContent  = questionText;
+  document.getElementById("progress-label").textContent = "Q" + (idx+1) + " of " + QUESTIONS.length;
+  document.getElementById("followup-badge").classList.toggle("show", isFollowUp);
+
+  const tb = document.getElementById("transcript-box");
+  tb.className = "transcript-box"; tb.innerHTML = "";
+  document.getElementById("rec-indicator").classList.remove("active");
+  document.getElementById("waveform").classList.remove("show");
+  document.getElementById("mic-error").classList.remove("show");
+  document.getElementById("auto-advance-wrap").classList.remove("show");
+  document.getElementById("advance-fill").style.width = "0%";
+  document.getElementById("transcribing-msg").classList.remove("show");
+  document.getElementById("analysing-msg").classList.remove("show");
+
+  if (!isFollowUp) {
+    document.querySelectorAll(".dot").forEach((d, i) => {
+      d.className = "dot" + (i < idx ? " done" : i === idx ? " current" : "");
+    });
+  }
+  beginCountdown(3, () => startSpeaking());
+}
+
+function beginCountdown(secs, onDone) {
+  const el = document.getElementById("start-countdown");
+  let n = secs;
+  el.style.display = "block";
+  el.textContent = "Recording starts in " + n + "s…";
+  function tick() {
+    n--;
+    if (n <= 0) { el.style.display = "none"; onDone(); }
+    else { el.textContent = "Recording starts in " + n + "s…"; S.countdownTimer = setTimeout(tick, 1000); }
+  }
+  S.countdownTimer = setTimeout(tick, 1000);
+}
+
+function startTimer() {
+  S.timerInt = setInterval(() => {
+    S.secs--;
+    const m = String(Math.floor(S.secs/60)).padStart(2,"0");
+    const s = String(S.secs%60).padStart(2,"0");
+    const el = document.getElementById("timer-display");
+    el.textContent = m + ":" + s;
+    el.className = "timer-val" + (S.secs<=120?" crit":S.secs<=300?" warn":"");
+    if (S.secs <= 0) { clearInterval(S.timerInt); autoSubmit(); }
+  }, 1000);
+}
+async function autoSubmit() {
+  clearTimeout(S.countdownTimer);
+  const hadSpeech = S.hasSpeech; const chunks = [...S.audioChunks];
+  await stopSpeaking();
+  let answer = "(No answer recorded)";
+  if (hadSpeech && chunks.length) {
+    try { answer = await transcribeChunks(chunks, S.mediaRecorder?.mimeType || "audio/webm"); } catch(_) {}
+  }
+  if (!S.answers[S.currentQ]) S.answers[S.currentQ] = {};
+  if (S.isFollowUp) { S.answers[S.currentQ].followUpA = answer; }
+  else { S.answers[S.currentQ].q = QUESTIONS[S.currentQ]; S.answers[S.currentQ].a = answer; }
+  finishInterview();
+}
+
+async function startSpeaking() {
+  if (S.recording) return;
+  let stream;
+  try {
+    stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
+  } catch (e) {
+    showMicErr("Microphone access denied. Please allow microphone access in your browser and reload.");
+    return;
+  }
+  S.stream = stream; S.recording = true; S.lastSpeech = Date.now();
+  S.hasSpeech = false; S.audioChunks = [];
+
+  S.audioCtx = new AudioContext();
+  S.analyser = S.audioCtx.createAnalyser();
+  S.analyser.fftSize = 256;
+  S.audioCtx.createMediaStreamSource(stream).connect(S.analyser);
+
+  const mimeType = MediaRecorder.isTypeSupported("audio/webm;codecs=opus") ? "audio/webm;codecs=opus" : "audio/webm";
+  S.mediaRecorder = new MediaRecorder(stream, { mimeType });
+  S.mediaRecorder.ondataavailable = e => { if (e.data.size > 0) S.audioChunks.push(e.data); };
+  S.mediaRecorder.start(250);
+
+  startBrowserSTT();
+
+  document.getElementById("rec-indicator").classList.add("active");
+  document.getElementById("waveform").classList.add("show");
+  document.getElementById("mic-error").classList.remove("show");
+
+  const freqData = new Uint8Array(S.analyser.frequencyBinCount);
+  const bars     = document.querySelectorAll(".wb");
+
+  S.silenceInt = setInterval(() => {
+    if (!S.recording) return;
+    S.analyser.getByteFrequencyData(freqData);
+    const n = bars.length;
+    bars.forEach((bar, i) => {
+      const idx = Math.floor((i / n) * (freqData.length / 2));
+      const h   = Math.max(4, Math.min(40, freqData[idx] * 0.25));
+      bar.style.height = h + "px";
+    });
+    const avg = freqData.reduce((a, b) => a + b, 0) / freqData.length;
+    if (avg > SOUND_THRESHOLD) {
+      S.lastSpeech = Date.now();
+      if (!S.hasSpeech) S.hasSpeech = true;
+      if (!S.autoAdvancing) {
+        document.getElementById("auto-advance-wrap").classList.remove("show");
+        document.getElementById("advance-fill").style.width = "0%";
+      }
+    }
+    if (S.hasSpeech && !S.checkingFollowUp && !S.autoAdvancing) {
+      const silence = Date.now() - S.lastSpeech;
+      if (silence >= SILENCE_START_MS) {
+        const pct = Math.min(100, (silence - SILENCE_START_MS) / (SILENCE_TOTAL_MS - SILENCE_START_MS) * 100);
+        document.getElementById("auto-advance-wrap").classList.add("show");
+        document.getElementById("advance-fill").style.width = pct + "%";
+        if (pct >= 100) { S.autoAdvancing = true; nextQuestion(); }
+      }
+    }
+  }, 150);
+}
+
+function stopSpeaking() {
+  return new Promise(resolve => {
+    S.recording = false;
+    clearInterval(S.silenceInt); S.silenceInt = null;
+    document.querySelectorAll(".wb").forEach(b => b.style.height = "4px");
+    document.getElementById("rec-indicator").classList.remove("active");
+    document.getElementById("waveform").classList.remove("show");
+    document.getElementById("auto-advance-wrap").classList.remove("show");
+    stopBrowserSTT();
+    const cleanup = () => {
+      if (S.stream) { S.stream.getTracks().forEach(t => t.stop()); S.stream = null; }
+      if (S.audioCtx) { S.audioCtx.close().catch(()=>{}); S.audioCtx = null; }
+      resolve();
+    };
+    if (S.mediaRecorder && S.mediaRecorder.state !== "inactive") {
+      S.mediaRecorder.onstop = cleanup; S.mediaRecorder.stop();
+    } else { cleanup(); }
+  });
+}
+function showMicErr(msg) { const el = document.getElementById("mic-error"); el.textContent = msg; el.classList.add("show"); }
+
+async function transcribeChunks(chunks, mimeType) {
+  if (chunks.length) {
+    try {
+      const blob   = new Blob(chunks, { type: mimeType || "audio/webm" });
+      const base64 = await blobToBase64(blob);
+      const r = await fetch("/api/transcribe", {
+        method: "POST", headers: {"Content-Type":"application/json"},
+        body: JSON.stringify({ audio: base64, type: mimeType || "audio/webm" }),
+      });
+      if (r.ok) {
+        const data = await r.json();
+        const text = (data.text || "").trim();
+        if (text) return text;
+      }
+    } catch (e) { console.warn("[transcribe] Server STT failed:", e.message); }
+  }
+  if (S.browserTranscript) { console.log("[transcribe] Using browser STT fallback"); return S.browserTranscript; }
+  return "(No answer recorded)";
+}
+function blobToBase64(blob) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onloadend = () => resolve(reader.result.split(",")[1]);
+    reader.onerror = reject;
+    reader.readAsDataURL(blob);
+  });
+}
+
+function startBrowserSTT() {
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SR) return;
+  S.browserTranscript = "";
+  const rec = new SR();
+  rec.lang = "en-US"; rec.continuous = true; rec.interimResults = false; rec.maxAlternatives = 1;
+  S.browserSR = rec;
+  rec.onresult = (e) => {
+    let text = "";
+    for (let i = 0; i < e.results.length; i++) { if (e.results[i].isFinal) text += e.results[i][0].transcript + " "; }
+    S.browserTranscript = text.trim();
+  };
+  rec.onend = () => { if (S.recording) { try { rec.start(); } catch(_) {} } };
+  rec.onerror = () => {};
+  try { rec.start(); } catch (_) {}
+}
+function stopBrowserSTT() {
+  if (S.browserSR) { try { S.browserSR.stop(); } catch(_) {} S.browserSR = null; }
+}
+
+async function nextQuestion() {
+  if (S.checkingFollowUp) return;
+  const chunks = [...S.audioChunks];
+  const mimeType = S.mediaRecorder?.mimeType || "audio/webm";
+  const hadSpeech = S.hasSpeech;
+  await stopSpeaking();
+
+  let answer = "(No answer recorded)";
+  if (hadSpeech && chunks.length) {
+    document.getElementById("transcribing-msg").classList.add("show");
+    try { answer = await transcribeChunks(chunks, mimeType); } catch (e) { console.error(e); }
+    document.getElementById("transcribing-msg").classList.remove("show");
+    const tb = document.getElementById("transcript-box");
+    tb.className = "transcript-box show";
+    tb.innerHTML = "<span>" + esc(answer) + "</span>";
+  }
+
+  if (S.isFollowUp) {
+    if (!S.answers[S.currentQ]) S.answers[S.currentQ] = {};
+    S.answers[S.currentQ].followUpA = answer;
+    S.isFollowUp = false; advanceQ(); return;
+  }
+  if (!S.answers[S.currentQ]) S.answers[S.currentQ] = {};
+  S.answers[S.currentQ].q = QUESTIONS[S.currentQ];
+  S.answers[S.currentQ].a = answer;
+  setAnalysing(true);
+  try {
+    const r = await fetch("/api/followup", { method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify({ question: QUESTIONS[S.currentQ], answer }) });
+    const data = await r.json();
+    if (data.shouldAsk && data.question) {
+      S.answers[S.currentQ].followUpQ = data.question;
+      setAnalysing(false); loadQ(S.currentQ, true, data.question); return;
+    }
+  } catch (e) { console.error(e); }
+  setAnalysing(false); advanceQ();
+}
+function advanceQ() {
+  document.getElementById("dot-" + S.currentQ).className = "dot done";
+  if (S.currentQ + 1 < QUESTIONS.length) { loadQ(S.currentQ + 1); } else { finishInterview(); }
+}
+function setAnalysing(on) {
+  S.checkingFollowUp = on;
+  document.getElementById("analysing-msg").classList.toggle("show", on);
+}
+function onVisibilityChange() {
+  if (document.hidden) { const f = "Tab switched on Q" + (S.currentQ+1); if (!S.flags.includes(f)) S.flags.push(f); }
+}
+
+async function finishInterview() {
+  clearInterval(S.timerInt);
+  await stopSpeaking();
+  document.removeEventListener("visibilitychange", onVisibilityChange);
+  show("submitting");
+
+  const fullTranscript = QUESTIONS.map((q, i) => {
+    const entry = S.answers[i] || {};
+    let block = "Q" + (i+1) + ": " + q + "\nA" + (i+1) + ": " + (entry.a || "(No answer recorded)");
+    if (entry.followUpQ) { block += "\n\nFollow-up Q" + (i+1) + ": " + entry.followUpQ + "\nFollow-up A" + (i+1) + ": " + (entry.followUpA || "(No answer recorded)"); }
+    return block;
+  }).join("\n\n---\n\n");
+
+  let aiScore = "N/A", aiFeedback = "AI scoring unavailable.";
+  try {
+    const data = await apiScore(fullTranscript);
+    if (data.score !== undefined) { aiScore = data.score + "/10"; aiFeedback = data.feedback || ""; }
+  } catch (e) { console.error(e); }
+
+  try {
+    await apiCandidate({ action: "updateCandidate", email: S.candidate.Email, fields: {
+      "Status": "Interviewed", "Transcript": fullTranscript, "AI Score": aiScore,
+      "AI Feedback": aiFeedback, "Suspicion Flags": S.flags.length ? S.flags.join(", ") : "None",
+      "Interviewed At": new Date().toISOString()
+    }});
+  } catch (e) { console.error(e); }
+
+  document.getElementById("result-name").textContent = S.candidate.Name;
+  show("result");
+}
+</script>
+</body>
+</html>

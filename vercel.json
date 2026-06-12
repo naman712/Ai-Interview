@@ -1,0 +1,19 @@
+{
+  "version": 2,
+  "name": "ai-interview-platform",
+  "builds": [
+    { "src": "index.html",  "use": "@vercel/static" },
+    { "src": "admin.html",  "use": "@vercel/static" },
+    { "src": "api/*.js",    "use": "@vercel/node"   }
+  ],
+  "routes": [
+    { "src": "/api/candidate", "dest": "/api/candidate.js" },
+    { "src": "/api/score",     "dest": "/api/score.js"     },
+    { "src": "/api/admin",     "dest": "/api/admin.js"     },
+    { "src": "/api/questions", "dest": "/api/questions.js" },
+    { "src": "/api/followup",   "dest": "/api/followup.js"   },
+    { "src": "/api/transcribe", "dest": "/api/transcribe.js" },
+    { "src": "/admin",         "dest": "/admin.html"       },
+    { "src": "/(.*)",          "dest": "/index.html"       }
+  ]
+}

@@ -1,0 +1,1238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Neoflo — Admin Panel</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg:          #000000;
+    --surface:     #0f0f0f;
+    --surface-2:   #1a1a1a;
+    --surface-3:   #242424;
+    --hover:       #222222;
+    --accent:      #ffffff;
+    --accent-hov:  #e0e0e0;
+    --accent-glow: rgba(255,255,255,0.07);
+    --white:       #ffffff;
+    --muted:       #777777;
+    --muted-2:     #555555;
+    --danger:      #ef4444;
+    --success:     #22c55e;
+    --warn:        #f59e0b;
+    --border:      rgba(255,255,255,0.09);
+    --border-2:    rgba(255,255,255,0.16);
+    --radius:      12px;
+    --sidebar-w:   220px;
+  }
+
+  html, body { height: 100%; font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; background: var(--bg); color: var(--white); overflow-x: hidden; }
+
+  /* ── Login ─────────────────────────────────────────────── */
+  #login-wrap {
+    min-height: 100vh; display: flex; align-items: center; justify-content: center;
+    padding: 24px; background: var(--bg);
+  }
+  .login-card {
+    background: var(--surface); border: 1px solid var(--border-2);
+    border-radius: var(--radius); padding: 48px 40px;
+    width: 100%; max-width: 400px;
+    box-shadow: 0 32px 80px rgba(0,0,0,0.8);
+  }
+  .brand { display: flex; align-items: center; gap: 12px; margin-bottom: 32px; }
+  .brand-icon {
+    width: 40px; height: 40px; background: var(--white); border-radius: 9px;
+    display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+  }
+  .brand-icon svg { width: 22px; height: 22px; }
+  .brand-name { font-size: 18px; font-weight: 800; letter-spacing: -0.3px; }
+  .brand-sub  { font-size: 11px; color: var(--muted); letter-spacing: 0.5px; text-transform: uppercase; }
+  .login-title { font-size: 22px; font-weight: 700; margin-bottom: 6px; }
+  .login-sub   { font-size: 14px; color: var(--muted); margin-bottom: 28px; }
+  .field label { display: block; font-size: 12px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.6px; margin-bottom: 6px; }
+  .field input {
+    width: 100%; padding: 12px 14px;
+    background: var(--surface-2); border: 1px solid var(--border-2);
+    border-radius: 8px; color: var(--white); font-size: 15px; outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s; margin-bottom: 16px;
+  }
+  .field input:focus { border-color: rgba(255,255,255,0.5); box-shadow: 0 0 0 3px var(--accent-glow); }
+  .field input::placeholder { color: var(--muted-2); }
+  .btn-login {
+    width: 100%; padding: 12px; border-radius: 8px;
+    background: var(--white); color: #000; font-size: 15px; font-weight: 600;
+    border: none; cursor: pointer; transition: all 0.2s;
+  }
+  .btn-login:hover:not(:disabled) { background: var(--accent-hov); transform: translateY(-1px); box-shadow: 0 8px 24px rgba(255,255,255,0.12); }
+  .btn-login:disabled { opacity: 0.4; cursor: not-allowed; }
+  .login-err {
+    background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.3);
+    color: #fca5a5; border-radius: 8px; padding: 10px 14px;
+    font-size: 13px; margin-top: 14px; display: none;
+  }
+  .login-err.show { display: block; }
+
+  /* ── App Shell ──────────────────────────────────────────── */
+  #app { display: none; min-height: 100vh; flex-direction: column; }
+  #app.show { display: flex; }
+
+  .app-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 28px; height: 60px;
+    background: var(--surface); border-bottom: 1px solid var(--border);
+    flex-shrink: 0; gap: 16px;
+  }
+  .app-header .brand { margin: 0; }
+  .header-right { display: flex; align-items: center; gap: 14px; }
+  .btn-logout {
+    padding: 7px 16px; border-radius: 8px; font-size: 13px; font-weight: 500;
+    background: transparent; border: 1px solid var(--border); color: var(--muted);
+    cursor: pointer; transition: all 0.2s;
+  }
+  .btn-logout:hover { border-color: var(--danger); color: var(--danger); }
+
+  .app-body { display: flex; flex: 1; overflow: hidden; }
+
+  /* ── Sidebar ────────────────────────────────────────────── */
+  .sidebar {
+    width: var(--sidebar-w); background: var(--surface);
+    border-right: 1px solid var(--border);
+    padding: 20px 12px; flex-shrink: 0;
+    display: flex; flex-direction: column; gap: 4px;
+  }
+  .nav-item {
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px 14px; border-radius: 9px;
+    font-size: 14px; font-weight: 500; color: var(--muted);
+    cursor: pointer; transition: all 0.15s; border: none; background: none; width: 100%; text-align: left;
+  }
+  .nav-item:hover { background: var(--surface-2); color: var(--white); }
+  .nav-item.active { background: var(--surface-3); color: var(--white); }
+  .nav-icon { font-size: 16px; width: 20px; text-align: center; }
+  .nav-label { flex: 1; }
+  .nav-badge {
+    background: var(--white); color: #000;
+    font-size: 11px; font-weight: 700; padding: 2px 7px; border-radius: 50px;
+  }
+
+  /* ── Main Content ───────────────────────────────────────── */
+  .main {
+    flex: 1; overflow-y: auto; padding: 32px 36px;
+    background: var(--bg);
+  }
+
+  .page { display: none; }
+  .page.active { display: block; }
+
+  .page-title { font-size: 22px; font-weight: 700; margin-bottom: 6px; }
+  .page-sub   { font-size: 14px; color: var(--muted); margin-bottom: 28px; }
+
+  /* ── Stats Row ──────────────────────────────────────────── */
+  .stats-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 28px; }
+  .stat-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 20px 22px;
+  }
+  .stat-label { font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; color: var(--muted); margin-bottom: 8px; }
+  .stat-value { font-size: 30px; font-weight: 800; }
+  .stat-value.blue   { color: var(--white); }
+  .stat-value.green  { color: var(--success); }
+  .stat-value.yellow { color: var(--warn); }
+
+  /* ── Search ─────────────────────────────────────────────── */
+  .search-row { display: flex; gap: 12px; margin-bottom: 20px; align-items: center; }
+  .search-box {
+    flex: 1; padding: 10px 14px;
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 9px; color: var(--white); font-size: 14px; outline: none;
+    transition: border-color 0.2s;
+  }
+  .search-box:focus { border-color: rgba(255,255,255,0.4); }
+  .search-box::placeholder { color: var(--muted); }
+
+  /* ── Candidates Table ───────────────────────────────────── */
+  .table-wrap {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius); overflow: hidden;
+  }
+  table { width: 100%; border-collapse: collapse; }
+  thead th {
+    padding: 12px 16px; text-align: left;
+    font-size: 11px; font-weight: 600; text-transform: uppercase;
+    letter-spacing: 1px; color: var(--muted);
+    border-bottom: 1px solid var(--border);
+    white-space: nowrap;
+  }
+  tbody tr { border-bottom: 1px solid var(--border); transition: background 0.15s; cursor: pointer; }
+  tbody tr:last-child { border-bottom: none; }
+  tbody tr:hover { background: var(--hover); }
+  tbody td { padding: 14px 16px; font-size: 14px; vertical-align: middle; }
+
+  .badge {
+    display: inline-block; padding: 3px 10px; border-radius: 50px;
+    font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;
+  }
+  .badge-interviewed { background: rgba(34,197,94,0.15);  color: var(--success); }
+  .badge-pending     { background: rgba(245,158,11,0.15); color: var(--warn); }
+
+  .flag-warn { color: var(--warn); font-size: 13px; }
+  .flag-none { color: var(--muted); font-size: 13px; }
+
+  .score-cell { font-weight: 700; color: var(--white); }
+
+  /* ── Expanded Row ───────────────────────────────────────── */
+  .expand-row { display: none; background: var(--surface-2); }
+  .expand-row.open { display: table-row; }
+  .expand-row td { padding: 0; }
+  .expand-inner { padding: 20px 24px; display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  .expand-section h4 {
+    font-size: 11px; font-weight: 600; text-transform: uppercase;
+    letter-spacing: 1px; color: var(--muted); margin-bottom: 10px;
+  }
+  .expand-text {
+    background: var(--bg); border: 1px solid var(--border);
+    border-radius: 8px; padding: 14px 16px;
+    font-size: 13px; line-height: 1.7; color: var(--white);
+    white-space: pre-wrap; max-height: 260px; overflow-y: auto;
+  }
+  .expand-full { grid-column: 1 / -1; }
+
+  .btn-expand {
+    background: none; border: none; cursor: pointer; color: var(--muted);
+    font-size: 18px; padding: 4px; transition: transform 0.2s, color 0.2s; line-height: 1;
+  }
+  .btn-expand.open { transform: rotate(180deg); color: var(--white); }
+
+  .empty-state {
+    padding: 60px 24px; text-align: center; color: var(--muted); font-size: 15px;
+  }
+
+  /* ── Questions Editor ───────────────────────────────────── */
+  .q-toolbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 12px; }
+  .q-actions { display: flex; gap: 10px; }
+
+  .btn {
+    display: inline-flex; align-items: center; gap: 7px;
+    padding: 9px 18px; border-radius: 8px; font-size: 14px; font-weight: 600;
+    cursor: pointer; border: none; transition: all 0.2s;
+  }
+  .btn-primary { background: var(--white); color: #000; }
+  .btn-primary:hover:not(:disabled) { background: var(--accent-hov); transform: translateY(-1px); box-shadow: 0 6px 20px rgba(255,255,255,0.12); }
+  .btn-outline {
+    background: transparent; color: var(--muted);
+    border: 1px solid var(--border);
+  }
+  .btn-outline:hover { border-color: rgba(255,255,255,0.4); color: var(--white); }
+  .btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none !important; }
+
+  .q-list { display: flex; flex-direction: column; gap: 10px; }
+  .q-item {
+    display: flex; align-items: flex-start; gap: 12px;
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 14px 16px;
+    transition: border-color 0.2s;
+  }
+  .q-item:focus-within { border-color: rgba(255,255,255,0.35); }
+
+  .q-num {
+    flex-shrink: 0; width: 28px; height: 28px; border-radius: 50%;
+    background: var(--surface-3); color: var(--muted);
+    font-size: 12px; font-weight: 700; display: flex; align-items: center; justify-content: center;
+    margin-top: 2px;
+  }
+
+  .q-input {
+    flex: 1; background: none; border: none; outline: none;
+    color: var(--white); font-size: 15px; line-height: 1.5;
+    resize: none; min-height: 24px; font-family: inherit;
+  }
+  .q-input::placeholder { color: var(--muted); }
+
+  .q-controls { display: flex; flex-direction: column; gap: 4px; flex-shrink: 0; }
+  .q-btn {
+    width: 28px; height: 28px; border-radius: 6px;
+    background: none; border: 1px solid var(--border); color: var(--muted);
+    cursor: pointer; font-size: 13px; display: flex; align-items: center; justify-content: center;
+    transition: all 0.15s;
+  }
+  .q-btn:hover { background: var(--surface-2); color: var(--white); }
+  .q-btn.del:hover { background: rgba(239,68,68,0.15); border-color: var(--danger); color: var(--danger); }
+  .q-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+
+  .add-q-btn {
+    display: flex; align-items: center; gap: 10px;
+    padding: 14px 16px; border-radius: var(--radius);
+    border: 1px dashed rgba(255,255,255,0.2); background: none; color: var(--muted);
+    cursor: pointer; font-size: 14px; font-weight: 500; transition: all 0.2s;
+    width: 100%;
+  }
+  .add-q-btn:hover { background: var(--surface-2); border-color: rgba(255,255,255,0.4); color: var(--white); }
+
+  .save-bar {
+    position: fixed; bottom: 28px; right: 36px;
+    display: flex; align-items: center; gap: 12px;
+    background: var(--surface); border: 1px solid var(--border-2);
+    border-radius: 50px; padding: 10px 10px 10px 20px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.6);
+    transition: opacity 0.3s; opacity: 0; pointer-events: none;
+  }
+  .save-bar.dirty { opacity: 1; pointer-events: all; }
+  .save-bar-label { font-size: 13px; color: var(--muted); }
+  .btn-save {
+    padding: 9px 22px; border-radius: 50px;
+    background: var(--white); color: #000; font-size: 14px; font-weight: 600;
+    border: none; cursor: pointer; transition: all 0.2s;
+  }
+  .btn-save:hover { background: var(--accent-hov); }
+
+  .toast {
+    position: fixed; bottom: 28px; left: 50%; transform: translateX(-50%) translateY(20px);
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 50px; padding: 10px 22px;
+    font-size: 14px; color: var(--white);
+    box-shadow: 0 8px 32px rgba(0,0,0,0.6);
+    opacity: 0; transition: all 0.3s; pointer-events: none; white-space: nowrap;
+  }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+  .toast.success { border-color: rgba(34,197,94,0.4); color: var(--success); }
+  .toast.error   { border-color: rgba(239,68,68,0.4);  color: #fca5a5; }
+
+  /* ── Window badge in table ──────────────────────────────── */
+  .window-badge {
+    display: inline-block; font-size: 11px; padding: 2px 8px;
+    border-radius: 50px; font-weight: 600; white-space: nowrap;
+  }
+  .window-open   { background: rgba(34,197,94,0.15);  color: var(--success); }
+  .window-future { background: rgba(255,255,255,0.1); color: var(--white); }
+  .window-closed { background: rgba(239,68,68,0.15);  color: #fca5a5; }
+  .window-none   { color: var(--muted); font-size: 12px; }
+
+  /* ── Modal overlay ───────────────────────────────────────── */
+  .modal-overlay {
+    position: fixed; inset: 0; z-index: 100;
+    background: rgba(0,0,0,0.7); backdrop-filter: blur(6px);
+    display: flex; align-items: center; justify-content: center;
+    padding: 24px; opacity: 0; pointer-events: none; transition: opacity 0.2s;
+  }
+  .modal-overlay.open { opacity: 1; pointer-events: all; }
+  .modal {
+    background: var(--surface); border: 1px solid var(--border-2);
+    border-radius: var(--radius); padding: 32px 36px;
+    width: 100%; max-width: 480px;
+    box-shadow: 0 24px 80px rgba(0,0,0,0.8);
+    transform: translateY(12px); transition: transform 0.25s;
+  }
+  .modal-overlay.open .modal { transform: translateY(0); }
+  .modal-title { font-size: 18px; font-weight: 700; margin-bottom: 6px; }
+  .modal-sub   { font-size: 13px; color: var(--muted); margin-bottom: 24px; }
+  .modal-field { margin-bottom: 18px; }
+  .modal-field label { display: block; font-size: 12px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 7px; }
+  .modal-field input[type="datetime-local"] {
+    width: 100%; padding: 11px 14px;
+    background: var(--surface-2); border: 1px solid var(--border-2);
+    border-radius: 8px; color: var(--white); font-size: 14px; outline: none;
+    transition: border-color 0.2s; color-scheme: dark;
+  }
+  .modal-field input[type="datetime-local"]:focus { border-color: rgba(255,255,255,0.5); }
+  .modal-scope {
+    background: var(--surface-2); border: 1px solid var(--border);
+    border-radius: 8px; padding: 14px 16px; margin-bottom: 24px;
+  }
+  .scope-option { display: flex; align-items: center; gap: 10px; cursor: pointer; padding: 4px 0; }
+  .scope-option input[type="radio"] { accent-color: var(--white); width: 16px; height: 16px; }
+  .scope-option span { font-size: 14px; }
+  .modal-actions { display: flex; gap: 10px; justify-content: flex-end; }
+  .btn-modal-cancel {
+    padding: 10px 20px; border-radius: 8px; font-size: 14px; font-weight: 500;
+    background: transparent; border: 1px solid var(--border); color: var(--muted);
+    cursor: pointer; transition: all 0.15s;
+  }
+  .btn-modal-cancel:hover { border-color: rgba(255,255,255,0.4); color: var(--white); }
+  .btn-modal-save {
+    padding: 10px 22px; border-radius: 8px; font-size: 14px; font-weight: 600;
+    background: var(--white); color: #000; border: none; cursor: pointer;
+    transition: all 0.2s;
+  }
+  .btn-modal-save:hover:not(:disabled) { background: var(--accent-hov); }
+  .btn-modal-save:disabled { opacity: 0.4; cursor: not-allowed; }
+  .btn-modal-clear {
+    padding: 10px 20px; border-radius: 8px; font-size: 14px; font-weight: 500;
+    background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.3);
+    color: #fca5a5; cursor: pointer; transition: all 0.15s;
+  }
+  .btn-modal-clear:hover { background: rgba(239,68,68,0.2); }
+  .selected-count { font-size: 12px; color: var(--white); margin-top: 4px; }
+
+  /* ── Candidates toolbar ──────────────────────────────────── */
+  .cand-toolbar { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 16px; flex-wrap: wrap; }
+
+  /* ── Add-candidate modal extras ─────────────────────────── */
+  .modal-field input[type="text"],
+  .modal-field input[type="email"],
+  .modal-field input[type="password"] {
+    width: 100%; padding: 11px 14px;
+    background: var(--surface-2); border: 1px solid var(--border-2);
+    border-radius: 8px; color: var(--white); font-size: 14px; outline: none;
+    transition: border-color 0.2s;
+  }
+  .modal-field input[type="text"]:focus,
+  .modal-field input[type="email"]:focus,
+  .modal-field input[type="password"]:focus { border-color: rgba(255,255,255,0.5); box-shadow: 0 0 0 3px var(--accent-glow); }
+  .modal-field input::placeholder { color: var(--muted); }
+  .modal-divider { border: none; border-top: 1px solid var(--border); margin: 18px 0; }
+  .modal-optional { font-size: 11px; color: var(--muted); margin-bottom: 14px; }
+
+  /* ── Delete-candidate button ─────────────────────────────── */
+  .btn-delete-cand {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 7px 14px; border-radius: 7px; font-size: 13px; font-weight: 500;
+    background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.3);
+    color: #fca5a5; cursor: pointer; transition: all 0.15s;
+  }
+  .btn-delete-cand:hover { background: rgba(239,68,68,0.22); border-color: var(--danger); }
+
+  /* ── Loading ────────────────────────────────────────────── */
+  .loading {
+    display: flex; align-items: center; justify-content: center;
+    padding: 60px; color: var(--muted); gap: 12px; font-size: 14px;
+  }
+  .spin {
+    width: 20px; height: 20px; border: 2px solid var(--surface-3);
+    border-top-color: var(--white); border-radius: 50%;
+    animation: spin 0.7s linear infinite; flex-shrink: 0;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* ── Responsive ─────────────────────────────────────────── */
+  @media (max-width: 900px) {
+    .sidebar { width: 60px; padding: 16px 8px; }
+    .nav-label, .nav-badge { display: none; }
+    .nav-item { justify-content: center; padding: 10px; }
+    .main { padding: 20px 16px; }
+    .stats-row { grid-template-columns: repeat(3,1fr); gap: 10px; }
+    .expand-inner { grid-template-columns: 1fr; }
+  }
+  @media (max-width: 600px) {
+    .app-header { padding: 0 16px; }
+    .sidebar { display: none; }
+    .stats-row { grid-template-columns: 1fr 1fr; }
+    .stat-card:last-child { grid-column: 1/-1; }
+    thead th:nth-child(n+4) { display: none; }
+    tbody td:nth-child(n+4) { display: none; }
+    .save-bar { right: 16px; bottom: 16px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════════════ LOGIN ════════════════════════════ -->
+<div id="login-wrap">
+  <div class="login-card">
+    <div class="brand">
+      <div class="brand-icon">
+        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M4 4h4l8 12h4V4h-4l-8 12H4V4z" fill="#000"/>
+        </svg>
+      </div>
+      <div>
+        <div class="brand-name">Neoflo</div>
+        <div class="brand-sub">Admin Panel</div>
+      </div>
+    </div>
+    <div class="login-title">Admin Sign In</div>
+    <div class="login-sub">Enter your admin password to continue.</div>
+    <div class="field">
+      <label>Admin Password</label>
+      <input type="password" id="admin-pass" placeholder="••••••••" autocomplete="current-password">
+    </div>
+    <button class="btn-login" id="btn-admin-login" onclick="adminLogin()">Sign In</button>
+    <div class="login-err" id="login-err"></div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════  APP  ════════════════════════════ -->
+<div id="app">
+  <!-- Header -->
+  <div class="app-header">
+    <div class="brand" style="margin:0">
+      <div class="brand-icon" style="width:32px;height:32px;border-radius:7px">
+        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="width:17px;height:17px">
+          <path d="M4 4h4l8 12h4V4h-4l-8 12H4V4z" fill="#000"/>
+        </svg>
+      </div>
+      <div>
+        <div class="brand-name" style="font-size:15px">Neoflo</div>
+        <div class="brand-sub">Admin Panel</div>
+      </div>
+    </div>
+    <div class="header-right">
+      <a href="/" style="font-size:13px;color:var(--muted);text-decoration:none;transition:color 0.2s"
+         onmouseover="this.style.color='var(--white)'" onmouseout="this.style.color='var(--muted)'">
+        ← Candidate Portal
+      </a>
+      <button class="btn-logout" onclick="adminLogout()">Logout</button>
+    </div>
+  </div>
+
+  <!-- Body -->
+  <div class="app-body">
+    <!-- Sidebar -->
+    <div class="sidebar">
+      <button class="nav-item active" id="nav-candidates" onclick="switchTab('candidates')">
+        <span class="nav-icon">👥</span>
+        <span class="nav-label">Candidates</span>
+        <span class="nav-badge" id="nav-badge">0</span>
+      </button>
+      <button class="nav-item" id="nav-questions" onclick="switchTab('questions')">
+        <span class="nav-icon">❓</span>
+        <span class="nav-label">Questions</span>
+      </button>
+    </div>
+
+    <!-- Main -->
+    <div class="main">
+
+      <!-- Candidates Page -->
+      <div class="page active" id="page-candidates">
+        <div class="page-title">Candidates</div>
+        <div class="page-sub">All registered candidates and their interview results.</div>
+
+        <div class="stats-row">
+          <div class="stat-card">
+            <div class="stat-label">Total</div>
+            <div class="stat-value blue" id="stat-total">—</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Interviewed</div>
+            <div class="stat-value green" id="stat-done">—</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Pending</div>
+            <div class="stat-value yellow" id="stat-pending">—</div>
+          </div>
+        </div>
+
+        <div class="cand-toolbar">
+          <input class="search-box" id="search-input" placeholder="Search by name, email, score…"
+            oninput="filterCandidates()" style="max-width:340px;margin:0">
+          <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+            <span class="selected-count" id="selected-count" style="display:none"></span>
+            <button class="btn btn-outline" onclick="openWindowModal()" title="Set interview login window for selected or all candidates">
+              ⏰ Set Interview Window
+            </button>
+            <button class="btn btn-primary" onclick="openAddModal()">
+              ＋ Add Candidate
+            </button>
+          </div>
+        </div>
+
+        <div class="table-wrap">
+          <div id="candidates-loading" class="loading">
+            <div class="spin"></div> Loading candidates…
+          </div>
+          <table id="candidates-table" style="display:none">
+            <thead>
+              <tr>
+                <th><input type="checkbox" id="chk-all" onchange="toggleSelectAll(this)" title="Select all" style="accent-color:var(--white)"></th>
+                <th></th>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Status</th>
+                <th>Score</th>
+                <th>Login Window</th>
+                <th>Interviewed At</th>
+              </tr>
+            </thead>
+            <tbody id="candidates-tbody"></tbody>
+          </table>
+          <div id="candidates-empty" class="empty-state" style="display:none">No candidates found.</div>
+        </div>
+      </div>
+
+      <!-- Questions Page -->
+      <div class="page" id="page-questions">
+        <div class="page-title">Interview Questions</div>
+        <div class="page-sub">Changes apply to all future interviews immediately.</div>
+
+        <div id="questions-loading" class="loading">
+          <div class="spin"></div> Loading questions…
+        </div>
+
+        <div id="questions-editor" style="display:none">
+          <div class="q-list" id="q-list"></div>
+          <button class="add-q-btn" style="margin-top:10px" onclick="addQuestion()">
+            <span style="font-size:18px">+</span> Add Question
+          </button>
+        </div>
+      </div>
+
+    </div><!-- /main -->
+  </div><!-- /app-body -->
+</div><!-- /app -->
+
+<!-- ════════════ SET INTERVIEW WINDOW MODAL ════════════════════ -->
+<div class="modal-overlay" id="window-modal">
+  <div class="modal">
+    <div class="modal-title">⏰ Set Interview Window</div>
+    <div class="modal-sub">Candidates can only log in within this time window.</div>
+
+    <div class="modal-field">
+      <label>Window Opens (Start)</label>
+      <input type="datetime-local" id="win-start">
+    </div>
+    <div class="modal-field">
+      <label>Window Closes (End)</label>
+      <input type="datetime-local" id="win-end">
+    </div>
+
+    <div class="modal-field">
+      <label>Apply to</label>
+      <div class="modal-scope">
+        <label class="scope-option">
+          <input type="radio" name="scope" value="all" checked id="scope-all">
+          <span>All candidates</span>
+        </label>
+        <label class="scope-option" id="scope-selected-wrap" style="display:none">
+          <input type="radio" name="scope" value="selected" id="scope-selected">
+          <span id="scope-selected-label">Selected candidates (0)</span>
+        </label>
+      </div>
+    </div>
+
+    <div class="modal-actions">
+      <button class="btn-modal-clear" onclick="clearWindow()">🗑 Clear Window</button>
+      <button class="btn-modal-cancel" onclick="closeWindowModal()">Cancel</button>
+      <button class="btn-modal-save" id="btn-win-save" onclick="saveWindow()">Apply Window</button>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════ ADD CANDIDATE MODAL ══════════════════════════ -->
+<div class="modal-overlay" id="add-modal">
+  <div class="modal">
+    <div class="modal-title">➕ Add Candidate</div>
+    <div class="modal-sub">Create a new candidate login. They'll use their email + password to start the interview.</div>
+
+    <div class="modal-field">
+      <label>Full Name</label>
+      <input type="text" id="add-name" placeholder="e.g. Priya Sharma" autocomplete="off">
+    </div>
+    <div class="modal-field">
+      <label>Email Address</label>
+      <input type="email" id="add-email" placeholder="candidate@example.com" autocomplete="off">
+    </div>
+    <div class="modal-field">
+      <label>Password</label>
+      <input type="text" id="add-password" placeholder="Set a login password for the candidate" autocomplete="off">
+    </div>
+
+    <hr class="modal-divider">
+    <div class="modal-optional">⏰ Interview Window (optional — leave blank for no restriction)</div>
+
+    <div class="modal-field">
+      <label>Window Opens</label>
+      <input type="datetime-local" id="add-win-start">
+    </div>
+    <div class="modal-field">
+      <label>Window Closes</label>
+      <input type="datetime-local" id="add-win-end">
+    </div>
+
+    <div id="add-error" style="display:none;font-size:13px;color:#fca5a5;margin-bottom:14px;padding:10px 14px;background:rgba(239,68,68,0.1);border-radius:8px;border:1px solid rgba(239,68,68,0.3)"></div>
+
+    <div class="modal-actions">
+      <button class="btn-modal-cancel" onclick="closeAddModal()">Cancel</button>
+      <button class="btn-modal-save" id="btn-add-save" onclick="submitAddCandidate()">Add Candidate</button>
+    </div>
+  </div>
+</div>
+
+<!-- Save bar (questions) -->
+<div class="save-bar" id="save-bar">
+  <span class="save-bar-label">Unsaved changes</span>
+  <button class="btn-save" id="btn-save" onclick="saveQuestions()">Save Changes</button>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ═══════════════════════════════════════════════════════════
+//  STATE
+// ═══════════════════════════════════════════════════════════
+let PASS          = "";
+let allCandidates = [];
+let questions     = [];
+let dirty         = false;
+let selectedEmails = new Set(); // for bulk window assignment
+
+// ═══════════════════════════════════════════════════════════
+//  LOGIN / LOGOUT
+// ═══════════════════════════════════════════════════════════
+document.getElementById("admin-pass").addEventListener("keydown", e => {
+  if (e.key === "Enter") adminLogin();
+});
+
+async function adminLogin() {
+  const pass = document.getElementById("admin-pass").value;
+  const btn  = document.getElementById("btn-admin-login");
+  const err  = document.getElementById("login-err");
+
+  if (!pass) { showLoginErr("Please enter the admin password."); return; }
+
+  btn.disabled = true;
+  btn.textContent = "Signing in…";
+  err.classList.remove("show");
+
+  // Validate password by calling a protected endpoint directly
+  // (can't use adminApi here because PASS isn't set yet)
+  try {
+    const r = await fetch("/api/admin", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action: "getQuestions", password: pass })
+    });
+    const res = await r.json();
+    if (res.error === "Unauthorized") {
+      showLoginErr("Incorrect password."); return;
+    }
+    PASS = pass;
+    document.getElementById("login-wrap").style.display = "none";
+    document.getElementById("app").classList.add("show");
+    loadCandidates();
+    questions = res.questions || [];
+    renderQuestions();
+  } catch (e) {
+    showLoginErr("Connection error. Please try again.");
+  } finally {
+    btn.disabled = false;
+    btn.textContent = "Sign In";
+  }
+}
+
+function showLoginErr(msg) {
+  const el = document.getElementById("login-err");
+  el.textContent = msg;
+  el.classList.add("show");
+}
+
+function adminLogout() {
+  PASS = "";
+  document.getElementById("app").classList.remove("show");
+  document.getElementById("login-wrap").style.display = "flex";
+  document.getElementById("admin-pass").value = "";
+}
+
+// ═══════════════════════════════════════════════════════════
+//  API
+// ═══════════════════════════════════════════════════════════
+async function adminApi(body) {
+  const r = await fetch("/api/admin", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ ...body, password: PASS })
+  });
+  return r.json();
+}
+
+// ═══════════════════════════════════════════════════════════
+//  TAB SWITCHING
+// ═══════════════════════════════════════════════════════════
+function switchTab(tab) {
+  document.querySelectorAll(".nav-item").forEach(n => n.classList.remove("active"));
+  document.querySelectorAll(".page").forEach(p => p.classList.remove("active"));
+  document.getElementById("nav-"  + tab).classList.add("active");
+  document.getElementById("page-" + tab).classList.add("active");
+}
+
+// ═══════════════════════════════════════════════════════════
+//  CANDIDATES
+// ═══════════════════════════════════════════════════════════
+async function loadCandidates() {
+  try {
+    const data = await adminApi({ action: "getCandidates" });
+    allCandidates = data.candidates || [];
+    renderCandidates(allCandidates);
+    updateStats(allCandidates);
+    document.getElementById("nav-badge").textContent = allCandidates.length;
+  } catch (e) {
+    document.getElementById("candidates-loading").innerHTML =
+      '<span style="color:var(--danger)">Failed to load candidates.</span>';
+  }
+}
+
+function updateStats(list) {
+  const done    = list.filter(c => String(c.Status || "").toLowerCase() === "interviewed").length;
+  const pending = list.length - done;
+  document.getElementById("stat-total").textContent   = list.length;
+  document.getElementById("stat-done").textContent    = done;
+  document.getElementById("stat-pending").textContent = pending;
+}
+
+function filterCandidates() {
+  const q = document.getElementById("search-input").value.toLowerCase();
+  const filtered = allCandidates.filter(c =>
+    (c.Name  || "").toLowerCase().includes(q) ||
+    (c.Email || "").toLowerCase().includes(q) ||
+    (c["AI Score"] || "").toLowerCase().includes(q) ||
+    (c["AI Feedback"] || "").toLowerCase().includes(q)
+  );
+  renderCandidates(filtered);
+}
+
+function renderCandidates(list) {
+  const loading = document.getElementById("candidates-loading");
+  const table   = document.getElementById("candidates-table");
+  const empty   = document.getElementById("candidates-empty");
+  const tbody   = document.getElementById("candidates-tbody");
+
+  loading.style.display = "none";
+
+  if (!list.length) {
+    table.style.display = "none";
+    empty.style.display = "block";
+    return;
+  }
+
+  table.style.display = "table";
+  empty.style.display = "none";
+  tbody.innerHTML = "";
+
+  list.forEach((c, i) => {
+    const interviewed = String(c.Status || "").toLowerCase() === "interviewed";
+    const flags       = c["Suspicion Flags"] || "None";
+    const hasFlags    = flags !== "None" && flags.trim() !== "";
+    const score       = c["AI Score"] || "—";
+    const date        = c["Interviewed At"]
+      ? new Date(c["Interviewed At"]).toLocaleDateString("en-GB", { day:"numeric", month:"short", year:"numeric", hour:"2-digit", minute:"2-digit" })
+      : "—";
+    const email  = c.Email || c.id || "";
+    const rowId  = "row-"  + i;
+    const expId  = "exp-"  + i;
+
+    // Window badge
+    const winBadge = buildWindowBadge(c.InterviewStart, c.InterviewEnd);
+
+    // Main row
+    const tr = document.createElement("tr");
+    tr.id = rowId;
+    tr.innerHTML = `
+      <td onclick="event.stopPropagation()">
+        <input type="checkbox" class="row-chk" data-email="${esc(email)}"
+          style="accent-color:var(--white)"
+          onchange="onRowCheck(this)" ${selectedEmails.has(email.toLowerCase()) ? "checked" : ""}>
+      </td>
+      <td>
+        <button class="btn-expand" id="btn-exp-${i}" onclick="toggleExpand(${i})" title="View details">▼</button>
+      </td>
+      <td><strong>${esc(c.Name || "—")}</strong></td>
+      <td style="color:var(--muted)">${esc(email)}</td>
+      <td>
+        <span class="badge ${interviewed ? "badge-interviewed" : "badge-pending"}">
+          ${interviewed ? "Interviewed" : "Pending"}
+        </span>
+      </td>
+      <td class="score-cell">${esc(score)}</td>
+      <td>${winBadge}</td>
+      <td style="color:var(--muted);font-size:13px">${date}</td>
+    `;
+    tbody.appendChild(tr);
+
+    // Expand row
+    const extr = document.createElement("tr");
+    extr.className = "expand-row";
+    extr.id = expId;
+    extr.innerHTML = `
+      <td colspan="8">
+        <div class="expand-inner">
+          <div class="expand-section">
+            <h4>AI Feedback</h4>
+            <div class="expand-text">${esc(c["AI Feedback"] || "No feedback available.")}</div>
+          </div>
+          <div class="expand-section">
+            <h4>Suspicion Flags</h4>
+            <div class="expand-text">${esc(flags)}</div>
+          </div>
+          <div class="expand-section expand-full">
+            <h4>Full Transcript</h4>
+            <div class="expand-text">${esc(c["Transcript"] || "No transcript recorded.")}</div>
+          </div>
+          <div class="expand-section expand-full" style="display:flex;justify-content:flex-end;padding-top:4px">
+            <button class="btn-delete-cand" onclick="deleteCandidate('${esc(email)}', event)">
+              🗑 Delete Candidate
+            </button>
+          </div>
+        </div>
+      </td>
+    `;
+    tbody.appendChild(extr);
+  });
+}
+
+function toggleExpand(i) {
+  const expRow = document.getElementById("exp-"    + i);
+  const btn    = document.getElementById("btn-exp-" + i);
+  const isOpen = expRow.classList.contains("open");
+  expRow.classList.toggle("open", !isOpen);
+  btn.classList.toggle("open", !isOpen);
+}
+
+// ═══════════════════════════════════════════════════════════
+//  QUESTIONS
+// ═══════════════════════════════════════════════════════════
+function renderQuestions() {
+  document.getElementById("questions-loading").style.display = "none";
+  document.getElementById("questions-editor").style.display  = "block";
+
+  const list = document.getElementById("q-list");
+  list.innerHTML = "";
+
+  questions.forEach((q, i) => {
+    const item = document.createElement("div");
+    item.className = "q-item";
+    item.id = "q-item-" + i;
+    item.innerHTML = `
+      <div class="q-num">${i + 1}</div>
+      <textarea class="q-input" rows="1" placeholder="Enter question…"
+        oninput="onQChange(${i}, this.value); autoResize(this)"
+        onload="autoResize(this)"
+      >${esc(q)}</textarea>
+      <div class="q-controls">
+        <button class="q-btn" title="Move up"   onclick="moveQ(${i}, -1)" ${i === 0 ? "disabled" : ""}>↑</button>
+        <button class="q-btn" title="Move down" onclick="moveQ(${i},  1)" ${i === questions.length - 1 ? "disabled" : ""}>↓</button>
+        <button class="q-btn del" title="Delete" onclick="deleteQ(${i})">✕</button>
+      </div>
+    `;
+    list.appendChild(item);
+    // Auto-resize textarea after render
+    const ta = item.querySelector("textarea");
+    setTimeout(() => autoResize(ta), 0);
+  });
+
+  markDirty(false);
+}
+
+function autoResize(ta) {
+  ta.style.height = "auto";
+  ta.style.height = ta.scrollHeight + "px";
+}
+
+function onQChange(i, val) {
+  questions[i] = val;
+  markDirty(true);
+}
+
+function addQuestion() {
+  questions.push("");
+  renderQuestions();
+  markDirty(true);
+  // Focus the new textarea
+  const items = document.querySelectorAll(".q-input");
+  const last  = items[items.length - 1];
+  if (last) { last.focus(); autoResize(last); }
+}
+
+function deleteQ(i) {
+  if (questions.length <= 1) { showToast("Must have at least one question.", "error"); return; }
+  questions.splice(i, 1);
+  renderQuestions();
+  markDirty(true);
+}
+
+function moveQ(i, dir) {
+  const j = i + dir;
+  if (j < 0 || j >= questions.length) return;
+  [questions[i], questions[j]] = [questions[j], questions[i]];
+  renderQuestions();
+  markDirty(true);
+}
+
+function markDirty(val) {
+  dirty = val;
+  document.getElementById("save-bar").classList.toggle("dirty", val);
+}
+
+async function saveQuestions() {
+  const btn = document.getElementById("btn-save");
+  const cleaned = questions.map(q => q.trim()).filter(Boolean);
+
+  if (!cleaned.length) { showToast("Add at least one question.", "error"); return; }
+
+  btn.disabled = true;
+  btn.textContent = "Saving…";
+
+  try {
+    await adminApi({ action: "updateQuestions", questions: cleaned });
+    questions = cleaned;
+    renderQuestions();
+    showToast("Questions saved successfully.", "success");
+  } catch (e) {
+    showToast("Failed to save. Please try again.", "error");
+  } finally {
+    btn.disabled = false;
+    btn.textContent = "Save Changes";
+  }
+}
+
+// ═══════════════════════════════════════════════════════════
+//  TOAST
+// ═══════════════════════════════════════════════════════════
+let toastTimer;
+function showToast(msg, type = "") {
+  const el = document.getElementById("toast");
+  el.textContent = msg;
+  el.className = "toast show" + (type ? " " + type : "");
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => el.className = "toast", 3000);
+}
+
+// ═══════════════════════════════════════════════════════════
+//  CHECKBOX SELECTION
+// ═══════════════════════════════════════════════════════════
+function onRowCheck(cb) {
+  const email = cb.dataset.email.toLowerCase();
+  if (cb.checked) selectedEmails.add(email);
+  else selectedEmails.delete(email);
+  updateSelectionUI();
+}
+
+function toggleSelectAll(cb) {
+  document.querySelectorAll(".row-chk").forEach(chk => {
+    chk.checked = cb.checked;
+    const email = chk.dataset.email.toLowerCase();
+    if (cb.checked) selectedEmails.add(email);
+    else selectedEmails.delete(email);
+  });
+  updateSelectionUI();
+}
+
+function updateSelectionUI() {
+  const n = selectedEmails.size;
+  const countEl = document.getElementById("selected-count");
+  const scopeWrap = document.getElementById("scope-selected-wrap");
+  const scopeLabel = document.getElementById("scope-selected-label");
+
+  if (n > 0) {
+    countEl.style.display = "inline";
+    countEl.textContent = `${n} selected`;
+    scopeWrap.style.display = "flex";
+    scopeLabel.textContent = `Selected candidates (${n})`;
+  } else {
+    countEl.style.display = "none";
+    scopeWrap.style.display = "none";
+    document.getElementById("scope-all").checked = true;
+  }
+}
+
+// ═══════════════════════════════════════════════════════════
+//  WINDOW BADGE
+// ═══════════════════════════════════════════════════════════
+function buildWindowBadge(start, end) {
+  if (!start && !end) return '<span class="window-none">Not set</span>';
+
+  const now  = new Date();
+  const s    = start ? new Date(start) : null;
+  const e    = end   ? new Date(end)   : null;
+  const fmt  = d => d.toLocaleString([], { month:"short", day:"numeric", hour:"2-digit", minute:"2-digit" });
+
+  let label, cls;
+  if (s && now < s) {
+    label = "Opens " + fmt(s); cls = "window-future";
+  } else if (e && now > e) {
+    label = "Closed " + fmt(e); cls = "window-closed";
+  } else {
+    const endStr = e ? " → " + fmt(e) : "";
+    label = (s ? fmt(s) : "Open") + endStr;
+    cls = "window-open";
+  }
+  return `<span class="window-badge ${cls}">${label}</span>`;
+}
+
+// ═══════════════════════════════════════════════════════════
+//  WINDOW MODAL
+// ═══════════════════════════════════════════════════════════
+function openWindowModal() {
+  updateSelectionUI();
+  // Pre-fill with existing window if all selected have same window (or leave blank)
+  document.getElementById("window-modal").classList.add("open");
+}
+
+function closeWindowModal() {
+  document.getElementById("window-modal").classList.remove("open");
+}
+
+// Close on backdrop click
+document.getElementById("window-modal").addEventListener("click", function(e) {
+  if (e.target === this) closeWindowModal();
+});
+
+async function saveWindow() {
+  const start   = document.getElementById("win-start").value;
+  const end     = document.getElementById("win-end").value;
+  const scopeAll = document.getElementById("scope-all").checked;
+
+  if (!start || !end) { showToast("Please set both start and end times.", "error"); return; }
+  if (new Date(start) >= new Date(end)) { showToast("End time must be after start time.", "error"); return; }
+
+  const emails = scopeAll ? [] : Array.from(selectedEmails);
+  const btn = document.getElementById("btn-win-save");
+  btn.disabled = true; btn.textContent = "Saving…";
+
+  try {
+    await adminApi({
+      action: "setInterviewWindow",
+      emails,
+      start: new Date(start).toISOString(),
+      end:   new Date(end).toISOString(),
+    });
+    closeWindowModal();
+    showToast("Interview window set successfully.", "success");
+    await loadCandidates();
+  } catch (e) {
+    showToast("Failed to set window. Try again.", "error");
+  } finally {
+    btn.disabled = false; btn.textContent = "Apply Window";
+  }
+}
+
+async function clearWindow() {
+  const scopeAll = document.getElementById("scope-all").checked;
+  const emails   = scopeAll ? [] : Array.from(selectedEmails);
+
+  if (!confirm(scopeAll
+    ? "Clear interview window for ALL candidates?"
+    : `Clear window for ${emails.length} selected candidate(s)?`)) return;
+
+  try {
+    await adminApi({ action: "clearInterviewWindow", emails });
+    closeWindowModal();
+    showToast("Interview window cleared.", "success");
+    await loadCandidates();
+  } catch(e) {
+    showToast("Failed to clear window.", "error");
+  }
+}
+
+// ═══════════════════════════════════════════════════════════
+//  ADD CANDIDATE MODAL
+// ═══════════════════════════════════════════════════════════
+function openAddModal() {
+  // Clear all fields
+  ["add-name","add-email","add-password","add-win-start","add-win-end"].forEach(id => {
+    document.getElementById(id).value = "";
+  });
+  document.getElementById("add-error").style.display = "none";
+  document.getElementById("add-modal").classList.add("open");
+  setTimeout(() => document.getElementById("add-name").focus(), 50);
+}
+
+function closeAddModal() {
+  document.getElementById("add-modal").classList.remove("open");
+}
+
+// Close on backdrop click
+document.getElementById("add-modal").addEventListener("click", function(e) {
+  if (e.target === this) closeAddModal();
+});
+
+// Allow Enter key to submit
+document.getElementById("add-modal").addEventListener("keydown", function(e) {
+  if (e.key === "Enter" && e.target.tagName !== "BUTTON") submitAddCandidate();
+});
+
+function showAddError(msg) {
+  const el = document.getElementById("add-error");
+  el.textContent = msg;
+  el.style.display = "block";
+}
+
+async function submitAddCandidate() {
+  const name  = document.getElementById("add-name").value.trim();
+  const email = document.getElementById("add-email").value.trim();
+  const pass  = document.getElementById("add-password").value.trim();
+  const ws    = document.getElementById("add-win-start").value;
+  const we    = document.getElementById("add-win-end").value;
+
+  document.getElementById("add-error").style.display = "none";
+
+  if (!name)  { showAddError("Please enter a name.");     return; }
+  if (!email) { showAddError("Please enter an email.");   return; }
+  if (!pass)  { showAddError("Please set a password.");   return; }
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    showAddError("Please enter a valid email address."); return;
+  }
+  if (ws && we && new Date(ws) >= new Date(we)) {
+    showAddError("Window end must be after window start."); return;
+  }
+
+  const btn = document.getElementById("btn-add-save");
+  btn.disabled = true;
+  btn.textContent = "Adding…";
+
+  try {
+    const res = await adminApi({
+      action:            "addCandidate",
+      name,
+      email,
+      candidatePassword: pass,
+      winStart:          ws ? new Date(ws).toISOString() : null,
+      winEnd:            we ? new Date(we).toISOString() : null,
+    });
+
+    if (!res.success) {
+      if (res.error === "candidate_exists") {
+        showAddError("A candidate with this email already exists.");
+      } else {
+        showAddError(res.error || "Failed to add candidate.");
+      }
+      return;
+    }
+
+    closeAddModal();
+    showToast(`✓ Candidate ${name} added successfully.`, "success");
+    await loadCandidates();
+
+  } catch (e) {
+    showAddError("Connection error. Please try again.");
+  } finally {
+    btn.disabled = false;
+    btn.textContent = "Add Candidate";
+  }
+}
+
+// ═══════════════════════════════════════════════════════════
+//  DELETE CANDIDATE
+// ═══════════════════════════════════════════════════════════
+async function deleteCandidate(email, event) {
+  event.stopPropagation();
+  const cand = allCandidates.find(c => (c.Email || c.id || "").toLowerCase() === email.toLowerCase());
+  const name = cand ? cand.Name : email;
+
+  if (!confirm(`Delete candidate "${name}"?\n\nThis removes them from Firestore permanently.`)) return;
+
+  try {
+    const res = await adminApi({ action: "deleteCandidate", email });
+    if (res.success) {
+      showToast(`Candidate ${name} deleted.`, "success");
+      await loadCandidates();
+    } else {
+      showToast("Failed to delete candidate.", "error");
+    }
+  } catch (e) {
+    showToast("Connection error.", "error");
+  }
+}
+
+// ═══════════════════════════════════════════════════════════
+//  UTILS
+// ═══════════════════════════════════════════════════════════
+function esc(s) {
+  return String(s)
+    .replace(/&/g,"&amp;").replace(/</g,"&lt;")
+    .replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+}
+</script>
+</body>
+</html>
