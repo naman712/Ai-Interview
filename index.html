@@ -304,6 +304,17 @@
     font-size: 13px; color: var(--warn); line-height: 1.5;
   }
 
+  /* Skip button */
+  .btn-skip {
+    background: none; border: 1px solid var(--border-2);
+    color: var(--muted); border-radius: 8px; padding: 9px 20px;
+    font-size: 12px; font-weight: 600; cursor: pointer;
+    transition: all 0.2s; display: none; letter-spacing: 0.3px;
+    align-items: center; gap: 6px;
+  }
+  .btn-skip:hover { border-color: rgba(0,0,0,0.35); color: var(--text); }
+  .btn-skip.show { display: inline-flex; }
+
   /* ── Responsive ─────────────────────────────────────── */
   @media (max-width: 600px) {
     .interview-header { padding: 12px 16px; }
@@ -491,6 +502,7 @@
       <div class="status-msg" id="analysing-msg">
         <div class="mini-spin"></div> Analysing your answer…
       </div>
+      <button id="skip-btn" class="btn-skip" onclick="skipQuestion()">Skip question →</button>
     </div>
   </div>
 </div>
@@ -722,6 +734,7 @@ async function startSpeaking() {
   document.getElementById("rec-indicator").classList.add("active");
   document.getElementById("waveform").classList.add("show");
   document.getElementById("mic-error").classList.remove("show");
+  document.getElementById("skip-btn").classList.add("show");
 
   const freqData = new Uint8Array(S.analyser.frequencyBinCount);
   const bars     = document.querySelectorAll(".wb");
@@ -764,6 +777,7 @@ function stopSpeaking() {
     document.getElementById("rec-indicator").classList.remove("active");
     document.getElementById("waveform").classList.remove("show");
     document.getElementById("auto-advance-wrap").classList.remove("show");
+    document.getElementById("skip-btn").classList.remove("show");
     stopBrowserSTT();
     const cleanup = () => {
       if (S.stream) { S.stream.getTracks().forEach(t => t.stop()); S.stream = null; }
@@ -823,6 +837,12 @@ function startBrowserSTT() {
 }
 function stopBrowserSTT() {
   if (S.browserSR) { try { S.browserSR.stop(); } catch(_) {} S.browserSR = null; }
+}
+
+function skipQuestion() {
+  if (!S.recording || S.autoAdvancing || S.checkingFollowUp) return;
+  S.autoAdvancing = true;
+  nextQuestion();
 }
 
 async function nextQuestion() {
