@@ -237,6 +237,72 @@
   .result-brand-logo svg { width: 11px; height: 11px; }
   .result-brand-name { font-size: 12px; font-weight: 700; color: var(--white); }
 
+  /* ── Instructions ───────────────────────────────────── */
+  #screen-instructions {
+    align-items: center; justify-content: center; padding: 32px 24px;
+    background: var(--bg); flex-direction: column;
+  }
+  .instr-card {
+    background: var(--surface); border: 1px solid var(--border-2);
+    border-radius: var(--radius); padding: 44px 40px;
+    width: 100%; max-width: 600px;
+    box-shadow: 0 32px 80px rgba(0,0,0,0.8);
+  }
+  .instr-header { display: flex; align-items: center; gap: 13px; margin-bottom: 28px; }
+  .instr-title { font-size: 22px; font-weight: 700; letter-spacing: -0.3px; }
+  .instr-sub   { font-size: 14px; color: var(--muted); margin-bottom: 28px; line-height: 1.6; }
+
+  /* Flow bar — all screens */
+  .flow-bar {
+    display: flex; align-items: center; justify-content: center;
+    gap: 0; margin-bottom: 32px; overflow-x: auto; padding-bottom: 4px;
+  }
+  .flow-step {
+    display: flex; flex-direction: column; align-items: center; gap: 6px;
+    flex-shrink: 0;
+  }
+  .flow-icon {
+    width: 40px; height: 40px; border-radius: 50%;
+    background: var(--surface-2); border: 1px solid var(--border-2);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px; position: relative; z-index: 1;
+  }
+  .flow-step.active .flow-icon {
+    background: var(--white); border-color: var(--white);
+    box-shadow: 0 0 0 3px rgba(255,255,255,0.15);
+  }
+  .flow-step.active .flow-icon span { filter: invert(1); }
+  .flow-step.done .flow-icon { background: var(--surface-3); border-color: var(--border-2); opacity: 0.5; }
+  .flow-label { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.8px; color: var(--muted); text-align: center; white-space: nowrap; }
+  .flow-step.active .flow-label { color: var(--white); }
+  .flow-connector {
+    height: 1px; width: 32px; background: var(--border-2); flex-shrink: 0;
+    margin-bottom: 22px;
+  }
+
+  /* Instruction list */
+  .instr-list { display: flex; flex-direction: column; gap: 14px; margin-bottom: 32px; }
+  .instr-item {
+    display: flex; align-items: flex-start; gap: 14px;
+    background: var(--surface-2); border: 1px solid var(--border);
+    border-radius: 10px; padding: 14px 16px;
+  }
+  .instr-num {
+    flex-shrink: 0; width: 26px; height: 26px; border-radius: 50%;
+    background: var(--surface-3); color: var(--muted);
+    font-size: 11px; font-weight: 700; display: flex; align-items: center; justify-content: center;
+  }
+  .instr-item-text { font-size: 14px; line-height: 1.6; color: var(--white); }
+  .instr-item-text strong { color: var(--white); font-weight: 600; }
+  .instr-item-text span  { color: var(--muted); font-size: 13px; }
+
+  .instr-warn {
+    display: flex; align-items: center; gap: 10px;
+    background: rgba(245,158,11,0.07); border: 1px solid rgba(245,158,11,0.2);
+    border-radius: 9px; padding: 12px 16px; margin-bottom: 28px;
+    font-size: 13px; color: var(--warn); line-height: 1.5;
+  }
+
   /* ── Responsive ─────────────────────────────────────── */
   @media (max-width: 600px) {
     .interview-header { padding: 12px 16px; }
@@ -285,6 +351,105 @@
   <div class="done-icon">✅</div>
   <div class="done-title">Interview Complete</div>
   <div class="done-sub">You have already completed this interview. Thank you — our team will be in touch soon.</div>
+</div>
+
+<!-- ═══════════════ INSTRUCTIONS ════════════════════ -->
+<div id="screen-instructions" class="screen">
+  <div class="instr-card">
+
+    <!-- Brand -->
+    <div class="instr-header">
+      <div class="brand-logo">
+        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M4 4h4l8 12h4V4h-4l-8 12H4V4z" fill="#000"/>
+        </svg>
+      </div>
+      <div>
+        <div class="brand-name">Neoflo</div>
+        <div class="brand-sub">AI Interview Platform</div>
+      </div>
+    </div>
+
+    <div class="instr-title">Before you begin</div>
+    <p class="instr-sub">Hi <strong id="instr-name"></strong>, here's how your interview works. Read through carefully before starting.</p>
+
+    <!-- Screen flow -->
+    <div class="flow-bar">
+      <div class="flow-step done">
+        <div class="flow-icon"><span>🔐</span></div>
+        <div class="flow-label">Login</div>
+      </div>
+      <div class="flow-connector"></div>
+      <div class="flow-step active">
+        <div class="flow-icon"><span>📋</span></div>
+        <div class="flow-label">Instructions</div>
+      </div>
+      <div class="flow-connector"></div>
+      <div class="flow-step">
+        <div class="flow-icon"><span>🎙️</span></div>
+        <div class="flow-label">Interview</div>
+      </div>
+      <div class="flow-connector"></div>
+      <div class="flow-step">
+        <div class="flow-icon"><span>⏳</span></div>
+        <div class="flow-label">Submitting</div>
+      </div>
+      <div class="flow-connector"></div>
+      <div class="flow-step">
+        <div class="flow-icon"><span>🎉</span></div>
+        <div class="flow-label">Complete</div>
+      </div>
+    </div>
+
+    <!-- Steps -->
+    <div class="instr-list">
+      <div class="instr-item">
+        <div class="instr-num">1</div>
+        <div class="instr-item-text">
+          <strong>Questions are asked one at a time.</strong><br>
+          <span>Each question appears on screen. You have a <strong>30-minute</strong> total time limit for the entire interview.</span>
+        </div>
+      </div>
+      <div class="instr-item">
+        <div class="instr-num">2</div>
+        <div class="instr-item-text">
+          <strong>Recording starts automatically.</strong><br>
+          <span>Your microphone will be activated after a short 3-second countdown. Just speak naturally — no button to press.</span>
+        </div>
+      </div>
+      <div class="instr-item">
+        <div class="instr-num">3</div>
+        <div class="instr-item-text">
+          <strong>Next question advances on silence.</strong><br>
+          <span>Once you stop speaking, a progress bar will appear. After <strong>10 seconds of silence</strong> the interview moves to the next question automatically.</span>
+        </div>
+      </div>
+      <div class="instr-item">
+        <div class="instr-num">4</div>
+        <div class="instr-item-text">
+          <strong>Follow-up questions may be asked.</strong><br>
+          <span>The AI may ask a brief follow-up based on your answer. Treat it like a natural conversation.</span>
+        </div>
+      </div>
+      <div class="instr-item">
+        <div class="instr-num">5</div>
+        <div class="instr-item-text">
+          <strong>Your answers are transcribed &amp; scored.</strong><br>
+          <span>Everything is processed after the interview. Results go directly to our team — you won't see a score.</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Warning -->
+    <div class="instr-warn">
+      ⚠️&nbsp; <span>Do <strong>not</strong> switch tabs or leave this page during the interview — it will be flagged. Ensure you are in a <strong>quiet environment</strong> with a working microphone.</span>
+    </div>
+
+    <button class="btn btn-primary" onclick="beginInterview()">
+      Start Interview →
+    </button>
+
+  </div>
 </div>
 
 <!-- ═══════════════ INTERVIEW ═════════════════════════ -->
@@ -384,8 +549,8 @@ const S = {
 };
 
 const SOUND_THRESHOLD  = 12;
-const SILENCE_START_MS = 3000;
-const SILENCE_TOTAL_MS = 5000;
+const SILENCE_START_MS = 5000;
+const SILENCE_TOTAL_MS = 10000;
 
 function show(id) {
   document.querySelectorAll(".screen").forEach(s => s.classList.remove("active"));
@@ -441,7 +606,9 @@ async function handleLogin() {
       const qData = await qRes.json();
       if (qData.questions && qData.questions.length) QUESTIONS = qData.questions;
     } catch (_) {}
-    startInterview();
+    // Show instructions screen before starting
+    document.getElementById("instr-name").textContent = c.Name;
+    show("instructions");
   } catch (e) {
     console.error(e);
     setErr(errEl, "Connection error — please check your network and try again.");
@@ -451,6 +618,10 @@ async function handleLogin() {
 }
 function setErr(el, msg) { el.textContent = msg; el.classList.add("show"); }
 document.getElementById("inp-password").addEventListener("keydown", e => { if (e.key === "Enter") handleLogin(); });
+
+function beginInterview() {
+  startInterview();
+}
 
 function startInterview() {
   document.getElementById("hdr-name").textContent = S.candidate.Name;
