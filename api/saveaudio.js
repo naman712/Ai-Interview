@@ -34,10 +34,15 @@ module.exports = async function handler(req, res) {
     const bucket = admin.storage().bucket(BUCKET);
     const file   = bucket.file(filePath);
 
-    await file.save(buffer, { contentType: type || "audio/webm", resumable: false });
-    await file.makePublic();
+    // metadata token makes the file accessible via Firebase download URL
+    const token = require("crypto").randomUUID();
+    await file.save(buffer, {
+      contentType: type || "audio/webm",
+      resumable:   false,
+      metadata:    { metadata: { firebaseStorageDownloadTokens: token } },
+    });
 
-    const url = `https://storage.googleapis.com/${BUCKET}/${filePath}`;
+    const url = `https://firebasestorage.googleapis.com/v0/b/${BUCKET}/o/${encodeURIComponent(filePath)}?alt=media&token=${token}`;
 
     await db.collection("candidates").doc(docId).set(
       { AudioFiles: { [key]: url } },
