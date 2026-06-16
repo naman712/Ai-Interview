@@ -15,6 +15,7 @@ app.post("/api/admin",      require("./api/admin"));
 app.get( "/api/questions",  require("./api/questions"));
 app.post("/api/followup",   require("./api/followup"));
 app.post("/api/transcribe", require("./api/transcribe"));
+app.post("/api/saveaudio",  require("./api/saveaudio"));
 
 // ── Static pages ───────────────────────────────────────────────
 app.get("/admin", (req, res) => res.sendFile(path.join(__dirname, "admin.html")));

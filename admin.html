@@ -202,6 +202,22 @@
   }
   .expand-full { grid-column: 1 / -1; }
 
+  .audio-list { display: flex; flex-direction: column; gap: 8px; }
+  .audio-item {
+    display: flex; align-items: center; gap: 10px;
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 8px; padding: 8px 12px;
+  }
+  .audio-label {
+    font-size: 12px; font-weight: 600; color: var(--muted);
+    min-width: 110px; white-space: nowrap;
+  }
+  .audio-dl {
+    font-size: 16px; color: var(--muted); text-decoration: none;
+    flex-shrink: 0; line-height: 1;
+  }
+  .audio-dl:hover { color: var(--text); }
+
   .btn-expand {
     background: none; border: none; cursor: pointer; color: var(--muted);
     font-size: 16px; padding: 4px 6px; transition: transform 0.2s, color 0.2s; line-height: 1;
@@ -961,6 +977,8 @@ function renderCandidates(list) {
             <div class="expand-text">${esc(c["Transcript"] || "No transcript recorded.")}</div>
           </div>
 
+          ${buildAudioSection(c.AudioFiles)}
+
           <div class="expand-section expand-full">
             <div class="edit-panel">
               <div class="edit-panel-title">✏️ Edit Candidate</div>
@@ -1508,6 +1526,28 @@ async function runImport() {
 // ═══════════════════════════════════════════════════════════
 function esc(s) {
   return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+}
+
+function buildAudioSection(audioFiles) {
+  if (!audioFiles || !Object.keys(audioFiles).length) return "";
+  const labelFor = k => {
+    const m = k.match(/^q(\d+)(_fu)?$/);
+    if (!m) return k;
+    const n = parseInt(m[1]) + 1;
+    return m[2] ? "Q" + n + " Follow-up" : "Q" + n;
+  };
+  const items = Object.keys(audioFiles).sort().map(k => {
+    const url = audioFiles[k];
+    return `<div class="audio-item">
+        <span class="audio-label">${labelFor(k)}</span>
+        <audio controls preload="none" src="${esc(url)}" style="height:30px;flex:1;min-width:0;"></audio>
+        <a class="audio-dl" href="${esc(url)}" download="${esc(k)}.webm" target="_blank" title="Download">&#x2B07;</a>
+      </div>`;
+  }).join("");
+  return `<div class="expand-section expand-full">
+    <h4>Audio Recordings</h4>
+    <div class="audio-list">${items}</div>
+  </div>`;
 }
 </script>
 </body>

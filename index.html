@@ -909,6 +909,20 @@ function blobToBase64(blob) {
   });
 }
 
+async function uploadQuestionAudio(chunks, mimeType, qIdx, isFollowUp) {
+  if (!chunks.length || !S.candidate) return;
+  try {
+    const blob   = new Blob(chunks, { type: mimeType || "audio/webm" });
+    const base64 = await blobToBase64(blob);
+    const key    = isFollowUp ? `q${qIdx}_fu` : `q${qIdx}`;
+    await fetch("/api/saveaudio", {
+      method:  "POST",
+      headers: { "Content-Type": "application/json" },
+      body:    JSON.stringify({ email: S.candidate.Email, questionKey: key, audio: base64, type: mimeType }),
+    });
+  } catch (e) { console.warn("[uploadAudio Q" + qIdx + "]", e.message); }
+}
+
 function startBrowserSTT() {
   const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
   if (!SR) return;
@@ -936,9 +950,10 @@ function nextQuestionClick() {
 
 async function nextQuestion() {
   if (S.checkingFollowUp) return;
-  const chunks = [...S.audioChunks];
-  const mimeType = S.mediaRecorder?.mimeType || "audio/webm";
+  const chunks    = [...S.audioChunks];
+  const mimeType  = S.mediaRecorder?.mimeType || "audio/webm";
   const hadSpeech = S.hasSpeech;
+  const isFollowUp = S.isFollowUp;
   await stopSpeaking();
 
   let answer = "(No answer recorded)";
@@ -946,9 +961,10 @@ async function nextQuestion() {
     document.getElementById("transcribing-msg").classList.add("show");
     try { answer = await transcribeChunks(chunks, mimeType); } catch (e) { console.error(e); }
     document.getElementById("transcribing-msg").classList.remove("show");
+    uploadQuestionAudio(chunks, mimeType, S.currentQ, isFollowUp).catch(() => {});
   }
 
-  if (S.isFollowUp) {
+  if (isFollowUp) {
     if (!S.answers[S.currentQ]) S.answers[S.currentQ] = {};
     S.answers[S.currentQ].followUpA = answer;
     S.isFollowUp = false; advanceQ(); return;
