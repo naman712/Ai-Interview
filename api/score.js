@@ -1,6 +1,4 @@
-// Serverless OpenRouter scoring
-// Keeps OPENROUTER_API_KEY out of the browser
-
+// Scoring via Groq (llama-3.3-70b-versatile) — large, reliable, fast
 module.exports = async function handler(req, res) {
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
@@ -9,10 +7,10 @@ module.exports = async function handler(req, res) {
   if (req.method === "OPTIONS") return res.status(200).end();
   if (req.method !== "POST") return res.status(405).json({ error: "Method not allowed" });
 
-  const apiKey = process.env.OPENROUTER_API_KEY;
-  const model  = process.env.OPENROUTER_MODEL || "google/gemma-4-31b-it:free";
+  const apiKey = process.env.GROQ_API_KEY;
+  const model  = "llama-3.3-70b-versatile";
 
-  if (!apiKey) return res.status(500).json({ error: "OPENROUTER_API_KEY not configured" });
+  if (!apiKey) return res.status(500).json({ error: "GROQ_API_KEY not configured" });
 
   const { transcript } = req.body || {};
   if (!transcript) return res.status(400).json({ error: "transcript is required" });
@@ -47,13 +45,11 @@ module.exports = async function handler(req, res) {
 
   for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
     try {
-      const upstream = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+      const upstream = await fetch("https://api.groq.com/openai/v1/chat/completions", {
         method: "POST",
         headers: {
           Authorization: `Bearer ${apiKey}`,
           "Content-Type": "application/json",
-          "HTTP-Referer": req.headers.origin || req.headers.referer || "https://interview-platform.vercel.app",
-          "X-Title": "AI Interview Platform",
         },
         body: JSON.stringify({
           model,
