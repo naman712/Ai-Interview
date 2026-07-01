@@ -16,23 +16,26 @@ if (!admin.apps.length) {
 const db = admin.firestore();
 
 const DEFAULTS = [
-  // Q1 — Easy | Experience & Background
-  "Walk me through a production ML/AI system you've built or owned. What was your role, and what did it actually run on?",
+  // Q1 — Production AI System (open-ended, deep dive)
+  "Walk me through a production ML/AI system you've built or owned. What problem did it solve, what was your role, what did the architecture look like, and what metrics did you track in production?",
 
-  // Q2 — Easy→Medium | FastAPI + CI/CD
-  "How do you structure a FastAPI service for an AI model endpoint — and how is it deployed and updated in CI/CD?",
+  // Q2 — Model Serving & API Design
+  "How would you structure and deploy a FastAPI-based AI service? Walk through the request flow, model loading, logging, monitoring, and CI/CD deployment.",
 
-  // Q3 — Medium | RAG & Knowledge Graphs (screens for experience, then branches)
-  "Have you worked on a RAG pipeline or a graph database like Neo4j in any project? If yes, describe that pipeline — how you chunked documents, chose embeddings, and handled retrieval quality issues. If not, explain how you'd design a system to search across thousands of enterprise documents — what components you'd use and why.",
+  // Q3 — RAG / Knowledge Graph
+  "Describe a RAG or Knowledge Graph system you've built. How did you chunk documents, generate embeddings, retrieve context, and evaluate retrieval quality?",
 
-  // Q4 — Medium | HuggingFace Loading & Serving (screens for experience, then branches)
-  "Have you worked with open-source LLMs from HuggingFace — loading, fine-tuning, or serving them in a real project? If yes, which model did you use and how did you handle GPU memory, quantization, and batching to make it production-viable? If not, how would you approach serving a 7B LLM from HuggingFace on a single GPU?",
+  // Q4 — Open Source LLM Experience
+  "Which open-source LLMs have you used in production — Llama, Qwen, Mistral, Gemma, or others? Explain how you served, fine-tuned, or optimised them.",
 
-  // Q5 — Medium→Hard | HuggingFace Inference & Ops (screens for experience, then branches)
-  "Have you tuned or optimized inference latency for an LLM in production — throughput, concurrency, or serving frameworks? If yes, describe a scenario where your model handled light load fine but degraded badly at scale — what did you change and what did it cost you? If not, walk through where you'd start if your HuggingFace model's latency was too high for production.",
+  // Q5 — Performance & Scalability
+  "Describe a situation where your AI system worked well at low traffic but struggled at scale. How did you identify and fix the bottleneck?",
 
-  // Q6 — Hard | System Design
-  "Design a multi-tenant document processing pipeline — covering ingestion, parsing, embeddings, and retrieval — that handles 10x traffic spikes without downtime."
+  // Q6 — Architecture Decision Making (tradeoffs)
+  "You're designing a multi-tenant AI document processing platform expected to handle millions of documents. For each of the following pairs, explain what problem it solves, why you'd choose it, and when you'd avoid it: SQL vs NoSQL, Redis vs PostgreSQL, Kafka vs RabbitMQ, Object Storage vs Database Storage, and Vector Database vs Traditional Database.",
+
+  // Q7 — End-to-End System Design
+  "Design an AI-powered document processing platform that can handle a 10x traffic spike without downtime. Explain the complete architecture and justify every major component — covering the API gateway, load balancer, queue, workers, OCR, LLM service, storage, cache, monitoring, autoscaling, and disaster recovery."
 ];
 
 module.exports = async function handler(req, res) {
